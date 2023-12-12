@@ -2,5 +2,11 @@
 venv
 /venv/
 
+# Removing __pycache__
 */__pycache__
+classroom/api/__pycache__
 */migrations/__pycache__
+
+# Removing sensible API data
+classroom/api/credentials.json
+classroom/api/token.json

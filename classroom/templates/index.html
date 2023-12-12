@@ -1,1 +1,10 @@
 <h1>Index</h1>
+
+<h4>courses: </h4>
+
+{% for course in courses %}
+	{% for value in course.values %}
+		{{ value }}
+	{% endfor %}
+ <br>
+{% endfor %}

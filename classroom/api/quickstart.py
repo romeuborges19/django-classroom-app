@@ -10,7 +10,7 @@ from googleapiclient.errors import HttpError
 SCOPES = ["https://www.googleapis.com/auth/classroom.courses.readonly"]
 
 
-def main():
+def get_courses():
   """Shows basic usage of the Classroom API.
   Prints the names of the first 10 courses the user has access to.
   """
@@ -18,19 +18,19 @@ def main():
   # The file token.json stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first
   # time.
-  if os.path.exists("token.json"):
-    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+  if os.path.exists("classroom/api/token.json"):
+    creds = Credentials.from_authorized_user_file("classroom/api/token.json", SCOPES)
   # If there are no (valid) credentials available, let the user log in.
   if not creds or not creds.valid:
     if creds and creds.expired and creds.refresh_token:
       creds.refresh(Request())
     else:
       flow = InstalledAppFlow.from_client_secrets_file(
-          "credentials.json", SCOPES
+          "classroom/api/credentials.json", SCOPES
       )
       creds = flow.run_local_server(port=0)
     # Save the credentials for the next run
-    with open("token.json", "w") as token:
+    with open("classroom/api/token.json", "w") as token:
       token.write(creds.to_json())
 
   try:
@@ -45,8 +45,15 @@ def main():
       return
     # Prints the names of the first 10 courses.
     print("Courses:")
+
+    result = []
+    print(courses)
     for course in courses:
-      print(course["name"])
+        course = {"id": course['id'], "name": course["name"]}
+        result.append(course) 
+        print(course["name"])
+
+    return result
 
   except HttpError as error:
     print(f"An error occurred: {error}")
