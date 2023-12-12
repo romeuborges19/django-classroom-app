@@ -1,6 +1,8 @@
 from django.shortcuts import render
+from django.views.generic import TemplateView
 
 # Create your views here.
 
-def classroom_view(request):
-    render(request, 'classroom/pages/index.html')
+class ClassroomView(TemplateView):
+    template_name = "index.html"
+
