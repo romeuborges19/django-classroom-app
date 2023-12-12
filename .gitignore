@@ -3,3 +3,4 @@ venv
 /venv/
 
 */__pycache__
+*/migrations/__pycache__
