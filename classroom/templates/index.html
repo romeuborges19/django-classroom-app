@@ -1,5 +1,13 @@
-<h1>Index</h1>
+{% extends 'base/header.html' %}
 
+{% block title %} Home {% endblock title %}
+
+{% block extra_css %}
+
+{% endblock extra_css %}
+
+
+{% block content %}
 <h4>courses: </h4>
 
 {% for course in courses %}
@@ -8,3 +16,6 @@
 	{% endfor %}
  <br>
 {% endfor %}
+
+<a href="{% url 'classroom:create_group' %}">Create Group</a>
+{% endblock content %}
