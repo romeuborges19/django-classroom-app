@@ -2,6 +2,9 @@
 venv
 /venv/
 
+
+.env
+
 # Removing __pycache__
 */__pycache__
 classroom/api/__pycache__
