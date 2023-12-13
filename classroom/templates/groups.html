@@ -9,6 +9,7 @@
 
 	{% for group in object_list %}
 		{{ group.name }} {{ group.classes }}
+		<a href="{% url 'classroom:group' group.pk %}"> View group </a>
 	{% endfor %}
 
 {% endblock content %}
