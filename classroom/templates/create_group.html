@@ -1,7 +1,38 @@
 {% extends 'base/header.html' %}
 
+{% load static %}
+{% load widget_tweaks %}
+
 {% block title %} Create Group of Classes {% endblock title %}
 
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/form.css' %}">
+{% endblock extra_css %}
+
 {% block content %}
-	Create group of classes
+<main>
+	<div class="main-container">
+		<form method="POST">
+			<div class="form-container">
+				{% csrf_token %}
+				<div class="form-title-container">
+					<p>Register Group of Classes</p>
+				</div>
+				<div class="form-fields-container">
+					<div class="field-container">
+						{{ form.name.label }}:
+						{% render_field form.name class="form-control" %}
+					</div>
+					<div class="field-container">
+						{{ form.avaliable_classes.label }}:
+						{% render_field form.avaliable_classes class="checkbox-form-control" %}
+					</div>
+				</div>
+				<div class="form-input-container">
+					<input class="form-input" type="submit" value="Create">
+				</div>
+			</div>
+		</form>
+	</div>
+</main>
 {% endblock content %}

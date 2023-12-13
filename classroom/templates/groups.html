@@ -1,0 +1,14 @@
+{% extends 'base/header.html' %}
+
+{% block title %} Groups {% endblock title %}
+
+{% block extra_css %}
+{% endblock extra_css %}
+
+{% block content %}
+
+	{% for group in object_list %}
+		{{ group.name }} {{ group.classes }}
+	{% endfor %}
+
+{% endblock content %}

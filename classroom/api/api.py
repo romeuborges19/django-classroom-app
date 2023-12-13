@@ -1,13 +1,18 @@
 import os.path
 
 from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
+from google.oauth2.credentials import Credentials, credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/classroom.courses.readonly"]
+SCOPES = [
+    "https://www.googleapis.com/auth/classroom.courses.readonly",
+    "https://www.googleapis.com/auth/classroom.rosters",
+    "https://www.googleapis.com/auth/classroom.profile.emails",
+    "https://www.googleapis.com/auth/classroom.profile.photos",
+]
 
 class GCApi:
     def __init__(self):
@@ -31,6 +36,15 @@ class GCApi:
         else:
             self.creds = None
 
+    def get_course_data(self, *courses):
+        service = build("classroom", "v1", credentials=self.creds)
+
+        try:
+            for course_id in courses:
+                course = service.courses().get(id=course_id).execute()
+        except HttpError as error:
+            print(f"An error has ocurred: {error}")        
+
     def get_courses(self):
         try:
             service = build("classroom", "v1", credentials=self.creds)
@@ -44,7 +58,6 @@ class GCApi:
             
             result = []
             for course in courses:
-                print(course)
                 course = {"id": course['id'], "name": course['name']}
                 result.append(course)
 

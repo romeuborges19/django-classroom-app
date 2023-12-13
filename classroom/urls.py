@@ -4,6 +4,8 @@ from . import views
 app_name='classroom'
 
 urlpatterns=[
-    path('', views.ClassroomView.as_view(), name='home'),
-    path('groups/create', views.ClassroomGroupCreateView.as_view(), name='create_group'),
+    path('', views.ClassroomHomeView.as_view(), name='home'),
+    path('groups/', views.GroupListView.as_view(), name='groups'),
+    path('groups/create', views.GroupCreateView.as_view(), name='create_group'),
+
 ]
