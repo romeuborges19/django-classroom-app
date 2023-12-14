@@ -25,12 +25,14 @@
 				{% endfor %}
 			</div>
 		</div>
-		<a href="{% url 'classroom:create_group' %}" class="button-container">
-			Create Group
-		</a>
-		<a href="{% url 'classroom:groups' %}" class="button-container">
-			See Groups
-		</a>
+		<div class="main-buttons-container">
+			<a href="{% url 'classroom:create_group' %}" class="button-container">
+				Create Group
+			</a>
+			<a href="{% url 'classroom:groups' %}" class="button-container">
+				See Groups
+			</a>
+		</div>
 	</div>
 </main>
 {% endblock content %}

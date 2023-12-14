@@ -42,6 +42,7 @@ main {
 	color: white;
 	font-weight: bold;
 	text-decoration: none;
+	margin-block: 5px;
 }
 
 .button-container:hover{

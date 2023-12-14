@@ -5,8 +5,6 @@ from classroom.api.api import *
 from classroom.forms import GroupForm
 from classroom.models import Group
 
-# Create your views here.
-
 class ClassroomHomeView(TemplateView):
     template_name = "index.html"
 
@@ -44,5 +42,9 @@ class GroupDetailView(DetailView):
 
         api = GCApi()
         courses = api.get_course_data(self.object.classes)
+
+        context['students'] = []
+        for course in courses:
+            context['students'].append(course['students'])
         
         return context

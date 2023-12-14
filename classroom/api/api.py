@@ -43,14 +43,28 @@ class GCApi:
 
         try:
             classes_info = []
-            print(courses)
             for course_id in courses:
-                print(course_id)
                 course = service.courses().get(id=course_id).execute()
-                course['students'] = service.courses().students().list(courseId=course_id).execute()
-                print(course['students'])
-                classes_info.append(course)
+                api_query = service.courses().students().list(courseId=course_id).execute()
+                students_data = []
+                students_data.append(api_query['students'])
 
+                while 'nextPageToken' in api_query:
+                    api_query = service.courses().students().list(courseId=course_id, pageToken=api_query['nextPageToken']).execute()
+                    students_data.append(api_query['students'])                   
+
+                students_list = []
+                i = 1
+                for students in students_data:
+                    for student in students:
+                        students_list.append({"id": i,
+                                              "fullname": student['profile']['name']['fullName'], 
+                                              "email": student['profile']['emailAddress']})
+                        
+                        i += 1
+                
+                course['students'] = students_list
+                classes_info.append(course)
             return classes_info
         except HttpError as error:
             print(f"An error has ocurred: {error}")

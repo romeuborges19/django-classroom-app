@@ -13,6 +13,12 @@
 <main>
 	<div class="main-container">
 		{{ group.name }}
+		{% for student_group in students %}
+			<p> turma: </p>
+			{% for student in student_group %}
+			<p>{{ student.id }} {{ student.name }} - {{ student.email }}</p>
+			{% endfor %}
+		{% endfor %}
 	</div>
 </main>
 {% endblock content %}
