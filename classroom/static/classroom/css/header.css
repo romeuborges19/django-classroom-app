@@ -1,0 +1,10 @@
+body {
+	margin: 0px;
+	padding: 0px;
+}
+
+.header-container {
+	background-color: #041524;
+	padding: 1rem;
+	color: white;
+}
