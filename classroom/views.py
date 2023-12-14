@@ -23,6 +23,7 @@ class GroupCreateView(FormView):
     success_url = reverse_lazy("classroom:groups")
 
     def form_valid(self, form):
+        print('form valid')
         self.object = form.save()
         group = self.object
         group.save()
@@ -37,14 +38,3 @@ class GroupDetailView(DetailView):
     template_name = "group_detail.html"
     model = Group
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        api = GCApi()
-        courses = api.get_course_data(self.object.classes)
-
-        context['students'] = []
-        for course in courses:
-            context['students'].append(course['students'])
-        
-        return context

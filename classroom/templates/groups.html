@@ -1,15 +1,31 @@
 {% extends 'base/header.html' %}
 
+{% load static %}
+
 {% block title %} Groups {% endblock title %}
 
 {% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/groups.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
+<main>
+	<div class="main-container">
+		<div class="main-title-container">
+			<p> List of groups </p>
+		</div>
 
-	{% for group in object_list %}
-		{{ group.name }} {{ group.classes }}
-		<a href="{% url 'classroom:group' group.pk %}"> View group </a>
-	{% endfor %}
-
+		<div class="groups-container">
+			{% for group in object_list %}
+				{{ group.classes }}
+				<div class="group-container">
+					<div class="group-info-container">
+						<b>{{ group.name }}</b>
+					</div>
+					<a class="button-container" href="{% url 'classroom:group' group.pk %}"> View group </a>
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+</main>
 {% endblock content %}

@@ -6,19 +6,54 @@
 {% block title %} Create Group of Classes {% endblock title %}
 
 {% block extra_css %}
-<link rel="stylesheet" type="text/css" href="">
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/group_detail.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
 <main>
 	<div class="main-container">
-		{{ group.name }}
-		{% for student_group in students %}
-			<p> turma: </p>
-			{% for student in student_group %}
-			<p>{{ student.id }} {{ student.name }} - {{ student.email }}</p>
-			{% endfor %}
-		{% endfor %}
+		<div class="group-info-container">
+			<div class="group-title-container">
+				<p> Grupo: <b>{{ group.name }}</b> </p>
+			</div>
+		
+			<div class="group-classes-container">
+				<p class="classes"> Turmas: </p>
+				{% for student_group in group.students %}
+					<div class="class-info-container">
+						<div class="class-title-container">
+							<p> {{ student_group.0 }}</p>
+						</div>
+						<button type="button" class="collapse button-container">View student list</button>
+						<div class="class-students-container">
+						{% for student in student_group.1 %}
+							<div class="class-student-container">
+								<p>{{ student.id }} - {{ student.fullname }} - {{ student.email }}</p>
+							</div>
+						{% endfor %}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
 	</div>
 </main>
+<script>
+var coll = document.getElementsByClassName("collapse");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+	coll[i].addEventListener("click", function () {
+		this.classList.toggle("active");
+		var content = this.nextElementSibling;
+
+		if (content.style.display === "block") {
+			coll.value = "Close student list";
+			content.style.display = "none";
+		} else {
+			content.style.display = "block";
+		}
+	})
+}
+</script>
 {% endblock content %}
