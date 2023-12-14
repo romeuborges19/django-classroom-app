@@ -1,6 +1,7 @@
 from django import forms
+from django.contrib.admin.options import widgets
 from classroom.api.api import GCApi
-from classroom.models import Group
+from classroom.models import ApprovedList, Group
 
 
 
@@ -42,3 +43,39 @@ class GroupForm(forms.ModelForm):
 
         return instance
 
+class ApprovedListForm(forms.ModelForm):
+    class Meta:
+        model = ApprovedList
+        exclude = ['approved_list', 'group']
+
+    def __init__(self, *args, **kwargs):
+        super(ApprovedListForm, self).__init__(*args, **kwargs)
+        
+        self.fields['approved_list_input'] = forms.CharField(
+            widget=forms.TextInput(
+                attrs={
+                    'class':'form-control', 
+                    'placeholder':'Insert list of approved students'
+                }
+            )
+        )
+
+    def clean(self):
+        print('limpando')
+        cleaned_data = super().clean()
+
+        approved_list = self.cleaned_data.get('approved_list_input')
+        approved_list = approved_list.split(' ')
+        self.cleaned_data['approved_list'] = approved_list
+        print(self.cleaned_data['approved_list'])
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        instance.approved_list = self.cleaned_data['approved_list']
+
+        if commit:
+            instance.save()
+
+        return instance

@@ -14,11 +14,23 @@
 	<div class="main-container">
 		<div class="group-info-container">
 			<div class="group-title-container">
-				<p> Grupo: <b>{{ group.name }}</b> </p>
+				<p> Group: <b>{{ group.name }}</b> </p>
+				<p> {{ num_students }} students enrolled </p>
+				<p> {{ num_approved_list }} students expected </p>
+
+				<form method="POST">
+					<button type="button" class="collapse">Set approved students list</button>
+					<div class="approved-input-area-container">
+						{% csrf_token %}
+
+						{{ approved_form }}
+						<input type="submit" value="Set">
+					</div>
+				</form>
 			</div>
 		
 			<div class="group-classes-container">
-				<p class="classes"> Turmas: </p>
+				<p class="classes"> Classes: </p>
 				{% for student_group in group.students %}
 					<div class="class-info-container">
 						<div class="class-title-container">
@@ -38,6 +50,7 @@
 		</div>
 	</div>
 </main>
+
 <script>
 var coll = document.getElementsByClassName("collapse");
 var i;

@@ -33,6 +33,19 @@ main {
 	width: 100%;
 }
 
+
+
+.group-info-container{
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+}
+
+.approved-input-area-container {
+	display: none;
+	height: auto;
+}
+
 .classes {
 	margin: 0px;
 }
@@ -44,6 +57,10 @@ main {
 	color: white;
 	border: none;
 	font-weight: bold;
-	transition: 200ms;
+	transition: 100ms;
 	border-radius: 6px;
+}
+
+.button-container:hover {
+	background-color: #0c2b45;
 }
