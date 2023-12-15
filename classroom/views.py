@@ -1,6 +1,7 @@
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, FormView, ListView, TemplateView
+from oauthlib.oauth2 import MissingTokenError
 from classroom.api.api import *
 from classroom.forms import ApprovedListForm, GroupForm
 from classroom.models import ApprovedList, Group
@@ -48,6 +49,8 @@ class GroupDetailView(DetailView):
             num_students += len(student_group[1])
 
         context['num_students'] = num_students
+
+        # Obtém formulário de lista de aprovados
         context['approved_form'] = ApprovedListForm()
 
         approved_list = ApprovedList.objects.filter(group=group).first()
@@ -71,3 +74,28 @@ class GroupDetailView(DetailView):
             approved_list_form.save()
 
         return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
+
+class MissingStudentsView(DetailView):
+    template_name = "missing_students.html"
+    model = Group
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        group = self.object
+        approved_list = ApprovedList.objects.filter(group_id=self.object.id).first()
+        approved_list = approved_list.approved_list
+        context['approved_list'] = approved_list
+        missing_list = []
+        students = []
+
+        for student_group in group.students:
+            for student in student_group[1]:
+                students.append(student['email'])
+
+        for approved_student in approved_list:
+            if approved_student not in students:
+                missing_list.append(approved_student)
+
+        context['missing_list'] = missing_list 
+
+        return context
