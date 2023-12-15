@@ -57,17 +57,22 @@ class ApprovedListForm(forms.ModelForm):
                     'class':'form-control', 
                     'placeholder':'Insert list of approved students'
                 }
-            )
+            ),
+            help_text="aluno1@gmail.com aluno2@gmail.com aluno3@gmail.com ..."
         )
 
     def clean(self):
-        print('limpando')
         cleaned_data = super().clean()
 
         approved_list = self.cleaned_data.get('approved_list_input')
         approved_list = approved_list.split(' ')
+
+        # Remove valores vazios da lista
+        while '' in approved_list:
+            approved_list.remove('')
+
         self.cleaned_data['approved_list'] = approved_list
-        print(self.cleaned_data['approved_list'])
+
         return cleaned_data
 
     def save(self, commit=True):
