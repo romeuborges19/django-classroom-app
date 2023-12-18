@@ -34,7 +34,13 @@
 							{% endfor %}
 							<div class="approved-input-left-container">
 							</div>
-							<p class="helptext"> Format: student1@gmail.com student2@gmail.com student3@gmail.com ...</p>
+									{% for field, error in request.session.form_error.items %}
+										{% for err in error %}
+											<div class="form-error-container">{{ err }}</div>
+										{% endfor %}
+									{% endfor %}
+
+							<p class="helptext">Must be a .csv file with the columns "fullname" and "email"</p>
 						</div>
 					</form>
 					{% if approved_list %}

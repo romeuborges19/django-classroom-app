@@ -65,27 +65,21 @@ class GroupDetailView(DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
-        f = io.TextIOWrapper(request.FILES['approved_list_csv'])
-        reader = csv.DictReader(f)
-        approved_list_data = []
-
-        for row in reader:
-            approved_list_data.append({"fullname": row['fullname'], "email": row['email']})    
-
         approved_list_form = ApprovedListForm(request.POST, request.FILES)
         approved_list = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
 
         if approved_list_form.is_valid():
+            del request.session['form_error']
             if approved_list:
                 approved_list.delete()
             approved_list_form.instance.group = Group.objects.filter(id=kwargs['pk']).first()
-            approved_list_form.instance.approved_list = approved_list_data
-            print(f'na view: {approved_list_form.instance.approved_list}')
             approved_list_form.save()
+            return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
         else:
-            print('form invalido')
+            request.session['form_error'] = approved_list_form.errors
+            return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}), context={'form_errors': approved_list_form.errors})
 
-        return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
+
 
 class MissingStudentsView(DetailView):
     template_name = "missing_students.html"

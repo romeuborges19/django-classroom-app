@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.admin.options import widgets
 import io
 import csv
+
+from django.utils.version import os
 from classroom.api.api import GCApi
 from classroom.models import ApprovedList, Group
 
@@ -53,10 +55,44 @@ class ApprovedListForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ApprovedListForm, self).__init__(*args, **kwargs)
 
+        self.file = kwargs.pop('file', None)
         self.fields['approved_list_csv'] = forms.FileField()
+        
+        # self.fields['approved_list_input'] = forms.CharField(
+        #     widget=forms.TextInput(
+        #         attrs={
+        #             'class':'form-control', 
+        #             'placeholder':'Insert list of approved students'
+        #         }
+        #     )
+        # )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        approved_list_csv = self.cleaned_data['approved_list_csv']
+
+        if approved_list_csv:
+            file_types = approved_list_csv.content_type.split('/')
+
+            if 'csv' not in file_types:
+                self.add_error('approved_list_csv', 'Invalid file format. Try uploading a .csv file.')
+            else: 
+                f = io.TextIOWrapper(approved_list_csv.file)
+
+                reader = csv.DictReader(f)
+                approved_list_data = []
+
+                for row in reader:
+                    approved_list_data.append({"fullname": row['fullname'], "email": row['email']})    
+
+                self.cleaned_data['approved_list'] = approved_list_data
+
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+        instance.approved_list = self.cleaned_data['approved_list']
 
         if commit:
             instance.save()

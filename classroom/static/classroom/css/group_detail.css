@@ -131,3 +131,9 @@ form {
 	color: #8f8f8f;
 	margin-block: 2px 8px;
 }
+
+.form-error-container {
+	font-size: 12px;
+	color: red;
+	margin-block: 10px 0px;
+}
