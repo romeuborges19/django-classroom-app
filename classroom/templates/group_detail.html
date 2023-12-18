@@ -18,16 +18,29 @@
 				<p> {{ num_students }} students enrolled </p>
 				<p> {{ num_approved_list }} students expected </p>
 
-				<form method="POST">
-					<button type="button" class="collapse">Set approved students list</button>
-					<div class="approved-input-area-container">
-						{% csrf_token %}
+				<div class="group-info-input-container">
+					<form method="POST" enctype="multipart/form-data">
+						<button type="button" class="collapse-flex button-top-container">Set approved students list</button>
+						<div class="approved-input-area-container">
+							{% csrf_token %}
+							
 
-						{{ approved_form }}
-						<input type="submit" value="Set">
-					</div>
-				</form>
-				<a href="{% url 'classroom:missing' group.pk %}">Check missing students</a>
+							{% for field in approved_form %}
+								<div class="approved-input-container">
+									{{ field }}
+
+									<input class="approved-submit" type="submit" value="Set">
+								</div>
+							{% endfor %}
+							<div class="approved-input-left-container">
+							</div>
+							<p class="helptext"> Format: student1@gmail.com student2@gmail.com student3@gmail.com ...</p>
+						</div>
+					</form>
+					{% if approved_list %}
+						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Check missing students</a>
+					{% endif %}
+				</div>
 			</div>
 		
 			<div class="group-classes-container">
@@ -66,6 +79,23 @@ for (i = 0; i < coll.length; i++) {
 			content.style.display = "none";
 		} else {
 			content.style.display = "block";
+		}
+	})
+}
+
+var coll = document.getElementsByClassName("collapse-flex");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+	coll[i].addEventListener("click", function () {
+		this.classList.toggle("active");
+		var content = this.nextElementSibling;
+
+		if (content.style.display === "flex") {
+			coll.value = "Close student list";
+			content.style.display = "none";
+		} else {
+			content.style.display = "flex";
 		}
 	})
 }

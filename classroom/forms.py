@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib.admin.options import widgets
+import io
+import csv
 from classroom.api.api import GCApi
 from classroom.models import ApprovedList, Group
 
@@ -50,35 +52,11 @@ class ApprovedListForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ApprovedListForm, self).__init__(*args, **kwargs)
-        
-        self.fields['approved_list_input'] = forms.CharField(
-            widget=forms.TextInput(
-                attrs={
-                    'class':'form-control', 
-                    'placeholder':'Insert list of approved students'
-                }
-            ),
-            help_text="aluno1@gmail.com aluno2@gmail.com aluno3@gmail.com ..."
-        )
 
-    def clean(self):
-        cleaned_data = super().clean()
-
-        approved_list = self.cleaned_data.get('approved_list_input')
-        approved_list = approved_list.split(' ')
-
-        # Remove valores vazios da lista
-        while '' in approved_list:
-            approved_list.remove('')
-
-        self.cleaned_data['approved_list'] = approved_list
-
-        return cleaned_data
+        self.fields['approved_list_csv'] = forms.FileField()
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-
-        instance.approved_list = self.cleaned_data['approved_list']
 
         if commit:
             instance.save()

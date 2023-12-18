@@ -1,3 +1,5 @@
+import csv
+import io
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, FormView, ListView, TemplateView
@@ -63,15 +65,25 @@ class GroupDetailView(DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
-        approved_list_form = ApprovedListForm(request.POST)
+        f = io.TextIOWrapper(request.FILES['approved_list_csv'])
+        reader = csv.DictReader(f)
+        approved_list_data = []
 
+        for row in reader:
+            approved_list_data.append({"fullname": row['fullname'], "email": row['email']})    
+
+        approved_list_form = ApprovedListForm(request.POST, request.FILES)
         approved_list = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
 
         if approved_list_form.is_valid():
             if approved_list:
                 approved_list.delete()
             approved_list_form.instance.group = Group.objects.filter(id=kwargs['pk']).first()
+            approved_list_form.instance.approved_list = approved_list_data
+            print(f'na view: {approved_list_form.instance.approved_list}')
             approved_list_form.save()
+        else:
+            print('form invalido')
 
         return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
 
