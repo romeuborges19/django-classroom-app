@@ -1,12 +1,13 @@
 import csv
 import io
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 from oauthlib.oauth2 import MissingTokenError
 from classroom.api.api import *
 from classroom.forms import ApprovedListForm, GroupForm
 from classroom.models import ApprovedList, Group
+from classroom.utils import is_ajax
 
 class ClassroomHomeView(TemplateView):
     template_name = "index.html"
@@ -65,19 +66,34 @@ class GroupDetailView(DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
-        approved_list_form = ApprovedListForm(request.POST, request.FILES)
-        approved_list = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
+        if is_ajax(self.request):
+            # Processa o pedido de atualização de lista de estudantes matriculados
 
-        if approved_list_form.is_valid():
-            del request.session['form_error']
-            if approved_list:
-                approved_list.delete()
-            approved_list_form.instance.group = Group.objects.filter(id=kwargs['pk']).first()
-            approved_list_form.save()
-            return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
+            group = Group.objects.filter(id=kwargs['pk']).first()
+            print(group)
+            api = GCApi();
+            classes_info = api.get_course_data([value[0] for value in group.classes])
+            students = []
+            for i, course in enumerate(classes_info):
+                students.append([group.classes[i][1], course['students']])
+            group.students = students
+            group.save()
         else:
-            request.session['form_error'] = approved_list_form.errors
-            return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}), context={'form_errors': approved_list_form.errors})
+            # Processa a submissão da lista de alunos aprovados
+
+            approved_list_form = ApprovedListForm(request.POST, request.FILES)
+            approved_list = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
+
+            if approved_list_form.is_valid():
+                del request.session['form_error']
+                if approved_list:
+                    approved_list.delete()
+                approved_list_form.instance.group = Group.objects.filter(id=kwargs['pk']).first()
+                approved_list_form.save()
+            else:
+                request.session['form_error'] = approved_list_form.errors
+
+        return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
 
 
 

@@ -32,17 +32,16 @@
 									<input class="approved-submit" type="submit" value="Set">
 								</div>
 							{% endfor %}
-							<div class="approved-input-left-container">
-							</div>
-									{% for field, error in request.session.form_error.items %}
-										{% for err in error %}
-											<div class="form-error-container">{{ err }}</div>
-										{% endfor %}
-									{% endfor %}
+							{% for field, error in request.session.form_error.items %}
+								{% for err in error %}
+									<div class="form-error-container">{{ err }}</div>
+								{% endfor %}
+							{% endfor %}
 
 							<p class="helptext">Must be a .csv file with the columns "fullname" and "email"</p>
 						</div>
 					</form>
+					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}">Update enrolled students List</button>
 					{% if approved_list %}
 						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Check missing students</a>
 					{% endif %}
@@ -70,8 +69,47 @@
 		</div>
 	</div>
 </main>
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+
+$(document).ready(function() {
+	$('.update-button').click(function() {
+		function getCookie(name) {
+			let cookieValue = null;
+			if(document.cookie && document.cookie != '') {
+				const cookies = document.cookie.split(';');
+				for(let i = 0; i < cookies.length; i++) {
+					const cookie = cookies[i].trim();
+
+					if (cookie.substring(0, name.length + 1) === (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}	
+
+		const csrftoken = getCookie('csrftoken');
+
+		const updateUrl = $(this).data('update-url');
+		$.ajax({
+				url: updateUrl,
+				method: 'POST',
+				headers: {'X-CSRFToken': csrftoken},
+				mode: 'same-origin',
+				success: function(response) {
+					if (response.error) {
+						alert(response.error);
+					} else {
+						location.reload();
+					}
+				}
+			})
+		})
+	})
+
+
 var coll = document.getElementsByClassName("collapse");
 var i;
 

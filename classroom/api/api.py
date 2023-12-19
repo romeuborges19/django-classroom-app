@@ -50,13 +50,16 @@ class GCApi:
                 students_data.append(api_query['students'])
 
                 while 'nextPageToken' in api_query:
-                    api_query = service.courses().students().list(courseId=course_id, pageToken=api_query['nextPageToken']).execute()
+                    api_query = service.courses().students().list(
+                        courseId=course_id, 
+                        pageToken=api_query['nextPageToken']).execute()
+
                     students_data.append(api_query['students'])                   
 
                 students_list = []
                 i = 1
                 for students in students_data:
-                    for student in students:
+                    for i, student in enumerate(students):
                         students_list.append({"id": i,
                                               "fullname": student['profile']['name']['fullName'], 
                                               "email": student['profile']['emailAddress']})

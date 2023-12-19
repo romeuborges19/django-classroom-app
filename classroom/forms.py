@@ -35,10 +35,8 @@ class GroupForm(forms.ModelForm):
         classes_info = api.get_course_data([value[0] for value in instance.classes])
         students = []
 
-        i = 0
-        for course in classes_info:
+        for i, course in enumerate(classes_info):
             students.append([instance.classes[i][1], course['students']])
-            i += 1
 
         instance.students = students
 
@@ -55,17 +53,7 @@ class ApprovedListForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ApprovedListForm, self).__init__(*args, **kwargs)
 
-        self.file = kwargs.pop('file', None)
         self.fields['approved_list_csv'] = forms.FileField()
-        
-        # self.fields['approved_list_input'] = forms.CharField(
-        #     widget=forms.TextInput(
-        #         attrs={
-        #             'class':'form-control', 
-        #             'placeholder':'Insert list of approved students'
-        #         }
-        #     )
-        # )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -98,3 +86,5 @@ class ApprovedListForm(forms.ModelForm):
             instance.save()
 
         return instance
+
+
