@@ -59,7 +59,7 @@ class GCApi:
                 students_list = []
                 i = 1
                 for students in students_data:
-                    for i, student in enumerate(students):
+                    for student in students:
                         students_list.append({"id": i,
                                               "fullname": student['profile']['name']['fullName'], 
                                               "email": student['profile']['emailAddress']})

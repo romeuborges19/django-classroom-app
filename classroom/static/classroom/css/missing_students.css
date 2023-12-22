@@ -1,0 +1,63 @@
+main {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.main-container {
+	display: flex;
+	flex-direction: column;
+	width: 90%;
+	align-items: center;
+	justify-content: center;
+	padding-top: 1.5rem;
+}
+
+.content-container {
+	display: flex;
+	flex-direction: column;
+	padding: 1.5rem 2rem;
+	border: 1px solid #c2c2c2;
+	border-radius: 12px;
+	width: 100%;
+}
+
+.missing-students-list {
+	display: none;
+}
+
+.card-container-container {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.card-container {
+	display: flex;
+	flex-direction: column;
+	padding: 1rem 2rem;
+	border: 1px solid #c2c2c2;
+	border-radius: 12px;
+}
+
+.options-container {
+	display: flex;
+	flex-direction: column;
+	margin-top: 10px;
+}
+
+.column,
+.not-selected {
+	display: flex;
+	flex-direction: column;
+}
+
+.lists-container {
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+}
+
+.list-container {
+	width: 100%;
+}

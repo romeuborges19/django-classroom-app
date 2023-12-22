@@ -1,5 +1,4 @@
-import csv
-import io
+from difflib import SequenceMatcher
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, FormView, ListView, TemplateView
@@ -70,12 +69,13 @@ class GroupDetailView(DetailView):
             # Processa o pedido de atualização de lista de estudantes matriculados
 
             group = Group.objects.filter(id=kwargs['pk']).first()
-            print(group)
             api = GCApi();
             classes_info = api.get_course_data([value[0] for value in group.classes])
             students = []
+
             for i, course in enumerate(classes_info):
                 students.append([group.classes[i][1], course['students']])
+
             group.students = students
             group.save()
         else:
@@ -86,8 +86,10 @@ class GroupDetailView(DetailView):
 
             if approved_list_form.is_valid():
                 del request.session['form_error']
+
                 if approved_list:
                     approved_list.delete()
+
                 approved_list_form.instance.group = Group.objects.filter(id=kwargs['pk']).first()
                 approved_list_form.save()
             else:
@@ -108,16 +110,48 @@ class MissingStudentsView(DetailView):
         approved_list = approved_list.approved_list
         context['approved_list'] = approved_list
         missing_list = []
-        students = []
+        students_emails = []
+        students_fullnames = []
 
         for student_group in group.students:
             for student in student_group[1]:
-                students.append(student['email'])
+                students_emails.append(student['email'])
+                students_fullnames.append(student['fullname'].lower())
 
         for approved_student in approved_list:
-            if approved_student not in students:
+            if approved_student['email'] not in students_emails:
                 missing_list.append(approved_student)
 
+        # Obtém lista de nomes semelhantes para comparação
+        comparison_list = []
+
+        for missing_student in missing_list:
+            next = False
+            missing_name = missing_student['fullname'].lower()
+            for fullname in students_fullnames:
+                fullname = fullname.lower()
+                missing_name_split = missing_name.split(' ')
+                fullname_split = fullname.split(' ')
+                if missing_name_split[0] == fullname_split[0]:
+                    similarity = similar(missing_name, fullname)
+                    if similarity > 0.4:
+                        comparison_list.append([missing_name, fullname])
+                        next = True
+                        break
+                if next: 
+                    break
+
+        
+        context['comparison_list'] = comparison_list
         context['missing_list'] = missing_list 
+        context['num_missing_list'] = len(missing_list)
 
         return context
+
+    def post(self, request, *args, **kwargs):
+        if is_ajax(self.request):
+            print(self.request.POST.get('not_missing_list'))
+
+
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()

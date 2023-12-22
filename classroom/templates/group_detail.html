@@ -42,12 +42,19 @@
 						</div>
 					</form>
 					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}">Update enrolled students List</button>
+					<p id="loading-message" class="loading-message"> Updating students list. Please wait... </p>
+
 					{% if approved_list %}
 						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Check missing students</a>
 					{% endif %}
 				</div>
+				<div id="success-message" class="success-message">
+					Enrolled students list successfully updated.
+				</div>
 			</div>
 		
+
+
 			<div class="group-classes-container">
 				<p class="classes"> Classes: </p>
 				{% for student_group in group.students %}
@@ -90,6 +97,8 @@ $(document).ready(function() {
 			return cookieValue;
 		}	
 
+
+		$('#loading-message').slideDown("slow");
 		const csrftoken = getCookie('csrftoken');
 
 		const updateUrl = $(this).data('update-url');
@@ -102,7 +111,11 @@ $(document).ready(function() {
 					if (response.error) {
 						alert(response.error);
 					} else {
-						location.reload();
+						$('#success-message').fadeIn("fast");
+						$('#loading-message').hide();
+						setTimeout(() => {
+							$('#success-message').slideUp("slow");
+					    }, 10000);	
 					}
 				}
 			})
