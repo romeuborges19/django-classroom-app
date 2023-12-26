@@ -11,6 +11,7 @@
 
 {% block content %}
 <main>
+	{% csrf_token %}
 	<div class="main-container">
 		<div class="content-container">
 			<button id="view-list-button" data-update-url="{% url 'classroom:missing' group.pk %}">View missing students list</button>
@@ -23,7 +24,6 @@
 					{{ student.email }} - {{ student.fullname }}<br>
 					</div>
 				{% endfor %}
-				<br>
 			</div>
 		</div>
 		<div class="comparison-container">
@@ -38,7 +38,8 @@
 						<div class="card-container">
 							{{ comparison.0 }} vs {{ comparison.1 }}
 							Are they the same person?
-							<button class="yes-button" value="{{ comparison.0 }}">Yes</button><button class="no-button" value="{{ comparison.0 }}">No</button>
+							<button class="yes-button" value="{{ comparison.0 }},{{ comparison.2 }}">Yes</button>
+							<button class="no-button" value="{{ comparison.0 }},{{ comparison.1}},{{ comparison.2 }}">No</button>
 						</div>
 						{% endfor %}
 					</div>
@@ -50,6 +51,13 @@
 						</div>
 					</div>
 				</div>
+				<div class="list-container">
+					<div class="not-enrolled-container">
+						<p> Alunos faltantes </p>
+						<div class="not-enrolled">
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 </main>
@@ -57,6 +65,7 @@
 <script>
 
 const notMissingList = []
+const missingList = []
 
 $(document).ready(function () {
 	var active = false;
@@ -69,24 +78,51 @@ $(document).ready(function () {
 			$('.missing-students-list').show();
 		}
 	})
-	$('.yes-button').click(function () {
-		var name = $(this).val();
 
-		if(!notMissingList.includes(name)) {
-			notMissingList.push(name);
+	$('.yes-button').click(function () {
+		var data = $(this).val();
+		data = data.split(',');
+
+		if(!searchInArray(notMissingList, data[0])) {
+			notMissingList.push(data);
+
+			var index = searchInArray(missingList, data[0])
+			if(index !== false) {
+				missingList.splice(index, 1)
+			}
+
 			$(this).parent().appendTo('.selected');
 		}
+
 	})
 
 	$('.no-button').click(function() {
-		var name = $(this).val();
+		var data = $(this).val();
+		data = data.split(',');
 
-		if (notMissingList.includes(name)) {
-			let index = notMissingList.indexOf(name);
+		var index = searchInArray(notMissingList, data[0]);
+		if (index !== false) {
 			notMissingList.splice(index, 1);
-			$('.not-selected').prepend($(this).parent());
 		}
+
+		index = searchInArray(missingList, data[1]);
+		if (index === false) {
+			missingList.push(data);
+		}
+
+		$(this).parent().appendTo('.not-enrolled');
 	})
+
+	function searchInArray(arr, item) {
+		for (let i = 0; i < arr.length; i++) {
+			for (let j = 0; j < arr[i].length; j++) {
+			if (arr[i][j] == item) {
+					return i;
+				}
+			}
+		}
+		return false;
+	}
 
 	$('#update-button').click(function() {
 		function getCookie(name) {
@@ -112,14 +148,16 @@ $(document).ready(function () {
 			url: updateUrl,
 			method: 'POST',
 			headers: {'X-CSRFToken': csrftoken},
-			data: { not_missing_list: notMissingList}, 
+			data: { 
+				'not_missing_list[]': notMissingList,
+				'missing_list[]': missingList
+			}, 
 			mode: 'same-origin',
 			success: function(response) {
 					if(response.error) {
 						alert(response.error);
 					} else {
-						console.log('treco')
-						location.reload()
+						location.reload();
 					}
 				}
 		})

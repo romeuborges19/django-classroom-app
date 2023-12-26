@@ -17,5 +17,7 @@ class Group(models.Model):
 class ApprovedList(models.Model):
     # Model que armazena lista de alunos aprovados para um grupo de turmas
 
-    approved_list = models.JSONField("Approved students list", default=None)
+    approved_list = models.JSONField("List of approved students", default=None)
+    not_missing_list = models.JSONField("List of not missing students", default=None) # Estudantes com e-mail diferente do registrado na lista de aprovados
+    missing_list = models.JSONField("List of missing students", default=None) # Estudantes que realmente não estão matriculados na turma
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="group", default=None)

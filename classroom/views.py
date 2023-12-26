@@ -107,6 +107,8 @@ class MissingStudentsView(DetailView):
         context = super().get_context_data(**kwargs)
         group = self.object
         approved_list = ApprovedList.objects.filter(group_id=self.object.id).first()
+        not_missing_list = approved_list.not_missing_list
+        actual_missing_list = approved_list.missing_list
         approved_list = approved_list.approved_list
         context['approved_list'] = approved_list
         missing_list = []
@@ -115,11 +117,11 @@ class MissingStudentsView(DetailView):
 
         for student_group in group.students:
             for student in student_group[1]:
-                students_emails.append(student['email'])
+                students_emails.append(student['email'].lower())
                 students_fullnames.append(student['fullname'].lower())
 
         for approved_student in approved_list:
-            if approved_student['email'] not in students_emails:
+            if approved_student['email'].lower() not in students_emails:
                 missing_list.append(approved_student)
 
         # Obtém lista de nomes semelhantes para comparação
@@ -127,6 +129,13 @@ class MissingStudentsView(DetailView):
 
         for missing_student in missing_list:
             next = False
+
+            if not_missing_list:
+                not_missing_names = [not_missing['fullname'] for not_missing in not_missing_list]
+                if missing_student['fullname'].lower() in not_missing_names:
+                    missing_list.remove(missing_student)
+                    continue
+
             missing_name = missing_student['fullname'].lower()
             for fullname in students_fullnames:
                 fullname = fullname.lower()
@@ -134,14 +143,18 @@ class MissingStudentsView(DetailView):
                 fullname_split = fullname.split(' ')
                 if missing_name_split[0] == fullname_split[0]:
                     similarity = similar(missing_name, fullname)
-                    if similarity > 0.4:
-                        comparison_list.append([missing_name, fullname])
+                    if similarity > 0.3:
+                        if actual_missing_list:
+                            aux = [missing_name, fullname, students_emails[students_fullnames.index(fullname)]]
+                            if aux not in actual_missing_list:
+                                comparison_list.append([missing_name, fullname, students_emails[students_fullnames.index(fullname)]])
                         next = True
                         break
                 if next: 
                     break
 
-        
+        # approved_list.missing_list = missing_list
+
         context['comparison_list'] = comparison_list
         context['missing_list'] = missing_list 
         context['num_missing_list'] = len(missing_list)
@@ -150,7 +163,43 @@ class MissingStudentsView(DetailView):
 
     def post(self, request, *args, **kwargs):
         if is_ajax(self.request):
-            print(self.request.POST.get('not_missing_list'))
+            not_missing_list = self.request.POST.getlist('not_missing_list[]')
+            missing_list = self.request.POST.getlist('missing_list[]')
+            approved_list = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
+
+            print(missing_list)
+            print('teste')
+            for comparison in missing_list:
+                comparison = comparison.split(',')
+                print(comparison)
+                
+                if approved_list.missing_list:
+                    print('treco')
+                    approved_list.missing_list.append(comparison)
+                else:
+                    print('trem')
+                    approved_list.missing_list = [comparison]
+
+            for student in not_missing_list:
+                student = student.split(',')
+                
+                # Colocando o nome em letra minúscula
+                student[0] = student[0].lower()
+
+                student_data = {'email': student[1], 'fullname': student[0]}
+                
+                if approved_list.not_missing_list:
+                    approved_list.not_missing_list.append(student_data)
+                else:
+                    approved_list.not_missing_list = [student_data]
+
+            print(approved_list.missing_list)
+            approved_list.save()
+
+            return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
+        else:
+            missing_list = self.request.POST.get('missing_list')
+
 
 
 def similar(a, b):
