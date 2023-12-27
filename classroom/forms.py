@@ -72,7 +72,10 @@ class ApprovedListForm(forms.ModelForm):
                 approved_list_data = []
 
                 for row in reader:
-                    approved_list_data.append({"fullname": row['fullname'], "email": row['email']})    
+                    approved_list_data.append({
+                        "fullname": row['fullname'], 
+                        "email": row['email']
+                    })    
 
                 self.cleaned_data['approved_list'] = approved_list_data
 

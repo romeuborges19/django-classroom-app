@@ -6,7 +6,7 @@ from oauthlib.oauth2 import MissingTokenError
 from classroom.api.api import *
 from classroom.forms import ApprovedListForm, GroupForm
 from classroom.models import ApprovedList, Group
-from classroom.utils import is_ajax
+from classroom.utils import get_missing_students_list, is_ajax
 
 class ClassroomHomeView(TemplateView):
     template_name = "index.html"
@@ -78,6 +78,7 @@ class GroupDetailView(DetailView):
                 students.append([group.classes[i][1], course['students']])
 
             lists.enrolled_list = students
+            lists.missing_list = get_missing_students_list(lists.approved_list, students)
             lists.save()
         else:
             # Processa a submissão da lista de alunos aprovados
@@ -107,7 +108,13 @@ class MissingStudentsView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        group = self.object
+
+        lists = ApprovedList.objects.filter(group_id=self.kwargs['pk']).first()
+
+        context['missing_list'] = lists.missing_list
+        context['num_missing_list'] = len(lists.missing_list)
+
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -120,10 +127,8 @@ class MissingStudentsView(DetailView):
                 comparison = comparison.split(',')
                 
                 if approved_list.missing_list:
-                    print('treco')
                     approved_list.missing_list.append(comparison)
                 else:
-                    print('trem')
                     approved_list.missing_list = [comparison]
 
             for student in not_missing_list:
