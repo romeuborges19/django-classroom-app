@@ -69,6 +69,7 @@ class GroupDetailView(DetailView):
             # Processa o pedido de atualização de lista de estudantes matriculados
 
             group = Group.objects.filter(id=kwargs['pk']).first()
+            lists = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
             api = GCApi();
             classes_info = api.get_course_data([value[0] for value in group.classes])
             students = []
@@ -76,8 +77,8 @@ class GroupDetailView(DetailView):
             for i, course in enumerate(classes_info):
                 students.append([group.classes[i][1], course['students']])
 
-            group.students = students
-            group.save()
+            lists.enrolled_list = students
+            lists.save()
         else:
             # Processa a submissão da lista de alunos aprovados
 
@@ -85,7 +86,8 @@ class GroupDetailView(DetailView):
             approved_list = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
 
             if approved_list_form.is_valid():
-                del request.session['form_error']
+                if request.session.has_key('form_error'):
+                    del request.session['form_error']
 
                 if approved_list:
                     approved_list.delete()
@@ -106,59 +108,6 @@ class MissingStudentsView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         group = self.object
-        approved_list = ApprovedList.objects.filter(group_id=self.object.id).first()
-        not_missing_list = approved_list.not_missing_list
-        actual_missing_list = approved_list.missing_list
-        approved_list = approved_list.approved_list
-        context['approved_list'] = approved_list
-        missing_list = []
-        students_emails = []
-        students_fullnames = []
-
-        for student_group in group.students:
-            for student in student_group[1]:
-                students_emails.append(student['email'].lower())
-                students_fullnames.append(student['fullname'].lower())
-
-        for approved_student in approved_list:
-            if approved_student['email'].lower() not in students_emails:
-                missing_list.append(approved_student)
-
-        # Obtém lista de nomes semelhantes para comparação
-        comparison_list = []
-
-        for missing_student in missing_list:
-            next = False
-
-            if not_missing_list:
-                not_missing_names = [not_missing['fullname'] for not_missing in not_missing_list]
-                if missing_student['fullname'].lower() in not_missing_names:
-                    missing_list.remove(missing_student)
-                    continue
-
-            missing_name = missing_student['fullname'].lower()
-            for fullname in students_fullnames:
-                fullname = fullname.lower()
-                missing_name_split = missing_name.split(' ')
-                fullname_split = fullname.split(' ')
-                if missing_name_split[0] == fullname_split[0]:
-                    similarity = similar(missing_name, fullname)
-                    if similarity > 0.3:
-                        if actual_missing_list:
-                            aux = [missing_name, fullname, students_emails[students_fullnames.index(fullname)]]
-                            if aux not in actual_missing_list:
-                                comparison_list.append([missing_name, fullname, students_emails[students_fullnames.index(fullname)]])
-                        next = True
-                        break
-                if next: 
-                    break
-
-        # approved_list.missing_list = missing_list
-
-        context['comparison_list'] = comparison_list
-        context['missing_list'] = missing_list 
-        context['num_missing_list'] = len(missing_list)
-
         return context
 
     def post(self, request, *args, **kwargs):
@@ -167,11 +116,8 @@ class MissingStudentsView(DetailView):
             missing_list = self.request.POST.getlist('missing_list[]')
             approved_list = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
 
-            print(missing_list)
-            print('teste')
             for comparison in missing_list:
                 comparison = comparison.split(',')
-                print(comparison)
                 
                 if approved_list.missing_list:
                     print('treco')
@@ -193,7 +139,6 @@ class MissingStudentsView(DetailView):
                 else:
                     approved_list.not_missing_list = [student_data]
 
-            print(approved_list.missing_list)
             approved_list.save()
 
             return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))

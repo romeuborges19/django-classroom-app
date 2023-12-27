@@ -14,9 +14,14 @@
 	{% csrf_token %}
 	<div class="main-container">
 		<div class="content-container">
-			<button id="view-list-button" data-update-url="{% url 'classroom:missing' group.pk %}">View missing students list</button>
-			<div class="missing-students-number">
-				Number of missing_students: {{ num_missing_list }}
+			<div class="content-header-container">
+				<div class="missing-students-number">
+					Number of missing_students: {{ num_missing_list }}
+				</div>
+				<div class="buttons-container">
+					<button class="header-button" id="view-list-button" data-update-url="{% url 'classroom:missing' group.pk %}">View missing students list</button>
+					<button id="update-button">Update enrolled students list</button>	
+				</div>
 			</div>
 			<div class="missing-students-list">
 				{% for student in missing_list %}
@@ -27,38 +32,45 @@
 			</div>
 		</div>
 		<div class="comparison-container">
-			<div class="comparison-header-container">
-				<button id="update-button">Update enrolled students list</button>	
-			</div>
-			<div class="lists-container">
-				<div class="list-container">
-					<p> Alunos não selecionados </p>
-					<div class="not-selected">
-						{% for comparison in comparison_list %}
-						<div class="card-container">
-							{{ comparison.0 }} vs {{ comparison.1 }}
-							Are they the same person?
-							<button class="yes-button" value="{{ comparison.0 }},{{ comparison.2 }}">Yes</button>
-							<button class="no-button" value="{{ comparison.0 }},{{ comparison.1}},{{ comparison.2 }}">No</button>
-						</div>
-						{% endfor %}
-					</div>
-				</div>
-				<div class="list-container">
-					<div class="selected-container">
-						<p> Alunos presentes </p>
-						<div class="selected">
+
+			{% if comparison_list %}
+				<div class="lists-container">
+					<div class="list-container">
+						<p> Alunos não selecionados </p>
+						<div class="not-selected">
+							{% for comparison in comparison_list %}
+							<div class="card-container">
+								{{ comparison.0 }}</br>{{ comparison.1 }}</br></br>
+								Are they the same person?
+								<div class="buttons-container">
+									<button class="yes-button button" value="{{ comparison.0 }},{{ comparison.2 }}">Yes</button>
+									<button class="no-button button" value="{{ comparison.0 }},{{ comparison.1}},{{ comparison.2 }}">No</button>
+								</div>
+							</div>
+							{% endfor %}
 						</div>
 					</div>
-				</div>
-				<div class="list-container">
-					<div class="not-enrolled-container">
-						<p> Alunos faltantes </p>
-						<div class="not-enrolled">
+					<div class="list-container">
+						<div class="selected-container">
+							<p> Alunos presentes </p>
+							<div class="selected">
+							</div>
+						</div>
+					</div>
+					<div class="list-container">
+						<div class="not-enrolled-container">
+							<p> Alunos faltantes </p>
+							<div class="not-enrolled">
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+			{% else %}
+				<div class="message">
+					<p> Sem irregularidades encontradas nas matrículas </p>
+				</div>
+			{% endif %}
+			
 		</div>
 </main>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -91,7 +103,7 @@ $(document).ready(function () {
 				missingList.splice(index, 1)
 			}
 
-			$(this).parent().appendTo('.selected');
+			$(this).parent().parent().appendTo('.selected');
 		}
 
 	})
@@ -110,7 +122,7 @@ $(document).ready(function () {
 			missingList.push(data);
 		}
 
-		$(this).parent().appendTo('.not-enrolled');
+		$(this).parent().parent().appendTo('.not-enrolled');
 	})
 
 	function searchInArray(arr, item) {

@@ -48,7 +48,7 @@ class GroupForm(forms.ModelForm):
 class ApprovedListForm(forms.ModelForm):
     class Meta:
         model = ApprovedList
-        exclude = ['approved_list', 'missing_list', 'group']
+        exclude = ['approved_list', 'missing_list', 'enrolled_list', 'group']
 
     def __init__(self, *args, **kwargs):
         super(ApprovedListForm, self).__init__(*args, **kwargs)
