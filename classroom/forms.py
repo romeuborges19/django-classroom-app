@@ -5,7 +5,7 @@ import csv
 
 from django.utils.version import os
 from classroom.api.api import GCApi
-from classroom.models import ApprovedList, Group
+from classroom.models import Group, Lists
 
 
 
@@ -47,7 +47,7 @@ class GroupForm(forms.ModelForm):
 
 class ApprovedListForm(forms.ModelForm):
     class Meta:
-        model = ApprovedList
+        model = Lists
         exclude = ['approved_list', 'missing_list', 'enrolled_list', 'group']
 
     def __init__(self, *args, **kwargs):

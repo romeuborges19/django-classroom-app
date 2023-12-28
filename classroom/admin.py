@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from classroom.models import ApprovedList, Group
+from classroom.models import Lists, Group
 # Register your models here.
 
 admin.site.register(Group)
-admin.site.register(ApprovedList)
+admin.site.register(Lists)

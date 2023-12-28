@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
-def get_missing_students_list(lists):
+def get_missing_list(lists):
     enrolled = lists.enrolled_list
     approved = lists.approved_list
     missing = []
