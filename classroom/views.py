@@ -6,7 +6,7 @@ from oauthlib.oauth2 import MissingTokenError
 from classroom.api.api import *
 from classroom.forms import ApprovedListForm, GroupForm
 from classroom.models import ApprovedList, Group
-from classroom.utils import get_missing_students_list, is_ajax
+from classroom.utils import get_comparisons, get_missing_students_list, is_ajax
 
 class ClassroomHomeView(TemplateView):
     template_name = "index.html"
@@ -78,7 +78,7 @@ class GroupDetailView(DetailView):
                 students.append([group.classes[i][1], course['students']])
 
             lists.enrolled_list = students
-            lists.missing_list = get_missing_students_list(lists.approved_list, students)
+            lists.missing_list = get_missing_students_list(lists)
             lists.save()
         else:
             # Processa a submissão da lista de alunos aprovados
@@ -111,6 +111,8 @@ class MissingStudentsView(DetailView):
 
         lists = ApprovedList.objects.filter(group_id=self.kwargs['pk']).first()
 
+        context['comparison_list'] = get_comparisons(lists)
+
         context['missing_list'] = lists.missing_list
         context['num_missing_list'] = len(lists.missing_list)
 
@@ -121,36 +123,34 @@ class MissingStudentsView(DetailView):
         if is_ajax(self.request):
             not_missing_list = self.request.POST.getlist('not_missing_list[]')
             missing_list = self.request.POST.getlist('missing_list[]')
-            approved_list = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
+            lists = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
 
-            for comparison in missing_list:
-                comparison = comparison.split(',')
-                
-                if approved_list.missing_list:
-                    approved_list.missing_list.append(comparison)
-                else:
-                    approved_list.missing_list = [comparison]
+            # Tratando lista de alunos não faltantes
+            for item in not_missing_list:
+                item = item.split(',')
 
-            for student in not_missing_list:
-                student = student.split(',')
-                
-                # Colocando o nome em letra minúscula
-                student[0] = student[0].lower()
+                for student in lists.missing_list:
+                    if student.get('fullname') == item[0]:
+                        lists.missing_list.remove(student) 
+                        print(f'{student} removed')
 
-                student_data = {'email': student[1], 'fullname': student[0]}
-                
-                if approved_list.not_missing_list:
-                    approved_list.not_missing_list.append(student_data)
-                else:
-                    approved_list.not_missing_list = [student_data]
+            unknown_comparisons = []
+            for item in missing_list:
+                item = item.split(',')
 
-            approved_list.save()
+                unknown_comparisons.append(item)
+
+            print(unknown_comparisons)
+            if lists.unknown_list:
+                for item in unknown_comparisons:
+                    lists.unknown_list.append(item)
+            else:
+                lists.unknown_list = unknown_comparisons
+
+            print(lists.unknown_list)
+
+            lists.save()
 
             return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
         else:
             missing_list = self.request.POST.get('missing_list')
-
-
-
-def similar(a, b):
-    return SequenceMatcher(None, a, b).ratio()

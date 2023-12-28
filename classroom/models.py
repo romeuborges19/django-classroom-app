@@ -20,4 +20,5 @@ class ApprovedList(models.Model):
     approved_list = models.JSONField("List of approved students", default=None, null=True)
     enrolled_list = models.JSONField("List of enrolled students", default=None, null=True)
     missing_list = models.JSONField("List of missing students", default=None, null=True)
+    unknown_list = models.JSONField("List of unknown students", default=None, null=True)
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="group", default=None)

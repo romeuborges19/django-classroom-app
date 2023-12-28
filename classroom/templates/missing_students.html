@@ -20,7 +20,7 @@
 				</div>
 				<div class="buttons-container">
 					<button class="header-button" id="view-list-button" data-update-url="{% url 'classroom:missing' group.pk %}">View missing students list</button>
-					<button id="update-button">Update enrolled students list</button>	
+
 				</div>
 			</div>
 			<div class="missing-students-list">
@@ -32,7 +32,9 @@
 			</div>
 		</div>
 		<div class="comparison-container">
-
+			<div class="comparison-button-container">
+				<button id="update-button">Update missing students list</button>	
+			</div>
 			{% if comparison_list %}
 				<div class="lists-container">
 					<div class="list-container">
