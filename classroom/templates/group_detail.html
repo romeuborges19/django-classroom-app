@@ -1,0 +1,160 @@
+{% extends 'base/header.html' %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %} Create Group of Classes {% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/group_detail.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+<main>
+	<div class="main-container">
+		<div class="group-info-container">
+			<div class="group-title-container">
+				<p> Group: <b>{{ group.name }}</b> </p>
+				<p> {{ num_students }} students enrolled </p>
+				<p> {{ num_approved_list }} students expected </p>
+
+				<div class="group-info-input-container">
+					<form method="POST" enctype="multipart/form-data">
+						<button type="button" class="collapse-flex button-top-container">Set approved students list</button>
+						<div class="approved-input-area-container">
+							{% csrf_token %}
+							
+
+							{% for field in approved_form %}
+								<div class="approved-input-container">
+									{{ field }}
+
+									<input class="approved-submit" type="submit" value="Set">
+								</div>
+							{% endfor %}
+							{% for field, error in request.session.form_error.items %}
+								{% for err in error %}
+									<div class="form-error-container">{{ err }}</div>
+								{% endfor %}
+							{% endfor %}
+
+							<p class="helptext">Must be a .csv file with the columns "fullname" and "email"</p>
+						</div>
+					</form>
+					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}">Update enrolled students List</button>
+					<p id="loading-message" class="loading-message"> Updating students list. Please wait... </p>
+
+					{% if approved_list %}
+						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Check missing students</a>
+					{% endif %}
+				</div>
+				<div id="success-message" class="success-message">
+					Enrolled students list successfully updated.
+				</div>
+			</div>
+		
+
+
+			<div class="group-classes-container">
+				<p class="classes"> Classes: </p>
+				{% for student_group in group.students %}
+					<div class="class-info-container">
+						<div class="class-title-container">
+							<p> {{ student_group.0 }}</p>
+						</div>
+						<button type="button" class="collapse button-container">View student list</button>
+						<div class="class-students-container">
+						{% for student in student_group.1 %}
+							<div class="class-student-container">
+								<p>{{ student.id }} - {{ student.fullname }} - {{ student.email }}</p>
+							</div>
+						{% endfor %}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+</main>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+$(document).ready(function() {
+	$('.update-button').click(function() {
+		function getCookie(name) {
+			let cookieValue = null;
+			if(document.cookie && document.cookie != '') {
+				const cookies = document.cookie.split(';');
+				for(let i = 0; i < cookies.length; i++) {
+					const cookie = cookies[i].trim();
+
+					if (cookie.substring(0, name.length + 1) === (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}	
+
+
+		$('#loading-message').slideDown("slow");
+		const csrftoken = getCookie('csrftoken');
+
+		const updateUrl = $(this).data('update-url');
+		$.ajax({
+				url: updateUrl,
+				method: 'POST',
+				headers: {'X-CSRFToken': csrftoken},
+				mode: 'same-origin',
+				success: function(response) {
+					if (response.error) {
+						alert(response.error);
+					} else {
+						$('#success-message').fadeIn("fast");
+						$('#loading-message').hide();
+						setTimeout(() => {
+							$('#success-message').slideUp("slow");
+					    }, 5000);	
+					}
+				}
+			})
+		})
+	})
+
+
+var coll = document.getElementsByClassName("collapse");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+	coll[i].addEventListener("click", function () {
+		this.classList.toggle("active");
+		var content = this.nextElementSibling;
+
+		if (content.style.display === "block") {
+			coll.value = "Close student list";
+			content.style.display = "none";
+		} else {
+			content.style.display = "block";
+		}
+	})
+}
+
+var coll = document.getElementsByClassName("collapse-flex");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+	coll[i].addEventListener("click", function () {
+		this.classList.toggle("active");
+		var content = this.nextElementSibling;
+
+		if (content.style.display === "flex") {
+			coll.value = "Close student list";
+			content.style.display = "none";
+		} else {
+			content.style.display = "flex";
+		}
+	})
+}
+</script>
+{% endblock content %}

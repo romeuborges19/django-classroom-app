@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&display=swap');
+
+main {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.main-container {
+	display: flex;
+	flex-direction: column;
+	width: 90%;
+	align-items: center;
+	justify-content: center;
+	padding-top: 1.5rem;
+	box-sizing: border-box;
+}
+
+.content-container {
+	display: flex;
+	flex-direction: column;
+	padding: 1.5rem 2rem;
+	border: 1px solid #c2c2c2;
+	border-radius: 12px;
+	width: 100%;
+	gap: 2rem;
+	box-sizing: border-box;
+}
+
+
+.content-header-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.missing-students-list {
+	display: none;
+}
+
+.card-container-container {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.card-container {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid #c2c2c2;
+	border-radius: 12px;
+	width: 100%;
+	padding: 10px;
+	margin-block: 5px;
+	box-sizing: border-box;
+}
+
+.options-container {
+	display: flex;
+	flex-direction: column;
+	margin-top: 10px;
+}
+
+.column,
+.not-selected {
+	display: flex;
+	flex-direction: column;
+}
+
+.lists-container {
+	display: flex;
+	box-sizing: border-box;
+	justify-content: space-between;
+	width: 100%;
+}
+
+.list-container {
+	width: 100%;
+	box-sizing: border-box;
+	margin-inline: 1rem; 
+}
+
+.comparison-container {
+	width: 100%;
+	font-family: 'Arimo', sans-serif;
+}
+
+.buttons-container {
+	display: flex;
+	gap: 10px;
+	margin-top: 5px;
+}
+
+.button {
+	width: 100%;
+}
+
+.yes-button {
+	background-color: #041524;
+	color: white;
+	font-weight: bold;
+	border: none;
+	border-radius: 2.5px;
+}
+
+
+.header-button {
+	background-color: #041524;
+	color: white;
+	font-weight: bold;
+	border: none;
+	padding: 0.3rem 1rem;
+	border-radius: 2.5px;
+}
+
+.header-button:active{
+	background-color: #1a364f;
+}
+
+
+.yes-button:active {
+	background-color: #1a364f;
+}
+
+.no-button {
+	border: 1.5px solid #041524;
+	border-radius: 2.5px; 
+	background-color: white;
+	color: #041524;
+	font-weight: bold;
+}
+
+.no-button:active {
+	background-color: #c9c9c9;
+}
+
+.message {
+	margin-top: 20px;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	color: #4a4a4a;
+}
+
+.comparison-button-container {
+	display: flex;
+	flex-direction: row-reverse;
+	padding: 1.5rem 2rem;
+}

@@ -1,0 +1,38 @@
+{% extends 'base/header.html' %}
+
+{% load static %}
+
+{% block title %} Home {% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/styles.css' %}">
+{% endblock extra_css %}
+
+
+{% block content %}
+<main>
+
+	<div class="main-container">
+		<div class="main-info-container">
+			<div class="main-title-container">
+				<p>Courses: </p>
+			</div>
+			<div class="courses-container">
+				{% for course in courses %}
+					<div class="course-container">
+						<b>{{ course.id }}</b> {{ course.name }}
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+		<div class="main-buttons-container">
+			<a href="{% url 'classroom:create_group' %}" class="button-container">
+				Create Group
+			</a>
+			<a href="{% url 'classroom:groups' %}" class="button-container">
+				See Groups
+			</a>
+		</div>
+	</div>
+</main>
+{% endblock content %}

@@ -1,0 +1,182 @@
+{% extends 'base/header.html' %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %} Create Group of Classes {% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/missing_students.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+<main>
+	{% csrf_token %}
+	<div class="main-container">
+		<div class="content-container">
+			<div class="content-header-container">
+				<div class="missing-students-number">
+					Number of missing_students: {{ num_missing_list }}
+				</div>
+				<div class="buttons-container">
+					<button class="header-button" id="view-list-button" data-update-url="{% url 'classroom:missing' group.pk %}">View missing students list</button>
+
+				</div>
+			</div>
+			<div class="missing-students-list">
+				{% for student in missing_list %}
+					<div class="missing-student">
+					{{ student.email }} - {{ student.fullname }}<br>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+		<div class="comparison-container">
+			<div class="comparison-button-container">
+				<button id="update-button">Update missing students list</button>	
+			</div>
+			{% if comparison_list %}
+				<div class="lists-container">
+					<div class="list-container">
+						<p> Alunos não selecionados </p>
+						<div class="not-selected">
+							{% for comparison in comparison_list %}
+							<div class="card-container">
+								{{ comparison.0 }}</br>{{ comparison.1 }}</br></br>
+								Are they the same person?
+								<div class="buttons-container">
+									<button class="yes-button button" value="{{ comparison.0 }},{{ comparison.2 }}">Yes</button>
+									<button class="no-button button" value="{{ comparison.0 }},{{ comparison.1}},{{ comparison.2 }}">No</button>
+								</div>
+							</div>
+							{% endfor %}
+						</div>
+					</div>
+					<div class="list-container">
+						<div class="selected-container">
+							<p> Alunos presentes </p>
+							<div class="selected">
+							</div>
+						</div>
+					</div>
+					<div class="list-container">
+						<div class="not-enrolled-container">
+							<p> Alunos faltantes </p>
+							<div class="not-enrolled">
+							</div>
+						</div>
+					</div>
+				</div>
+			{% else %}
+				<div class="message">
+					<p> Sem irregularidades encontradas nas matrículas </p>
+				</div>
+			{% endif %}
+			
+		</div>
+</main>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+const notMissingList = []
+const missingList = []
+
+$(document).ready(function () {
+	var active = false;
+	$('#view-list-button').click(function () {
+		if (active) {
+			active = false;
+			$('.missing-students-list').hide();
+		} else {
+			active = true;
+			$('.missing-students-list').show();
+		}
+	})
+
+	$('.yes-button').click(function () {
+		var data = $(this).val();
+		data = data.split(',');
+
+		if(!searchInArray(notMissingList, data[0])) {
+			notMissingList.push(data);
+
+			var index = searchInArray(missingList, data[0])
+			if(index !== false) {
+				missingList.splice(index, 1)
+			}
+
+			$(this).parent().parent().appendTo('.selected');
+		}
+
+	})
+
+	$('.no-button').click(function() {
+		var data = $(this).val();
+		data = data.split(',');
+
+		var index = searchInArray(notMissingList, data[0]);
+		if (index !== false) {
+			notMissingList.splice(index, 1);
+		}
+
+		index = searchInArray(missingList, data[1]);
+		if (index === false) {
+			missingList.push(data);
+		}
+
+		$(this).parent().parent().appendTo('.not-enrolled');
+	})
+
+	function searchInArray(arr, item) {
+		for (let i = 0; i < arr.length; i++) {
+			for (let j = 0; j < arr[i].length; j++) {
+			if (arr[i][j] == item) {
+					return i;
+				}
+			}
+		}
+		return false;
+	}
+
+	$('#update-button').click(function() {
+		function getCookie(name) {
+			let cookieValue = null;
+			if(document.cookie && document.cookie != '') {
+				const cookies = document.cookie.split(';');
+				for(let i = 0; i < cookies.length; i++) {
+					const cookie = cookies[i].trim();
+
+					if (cookie.substring(0, name.length + 1) === (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}	
+
+		const csrftoken = getCookie('csrftoken');
+		const updateUrl = $(this).data('update-url');
+
+		$.ajax({
+			url: updateUrl,
+			method: 'POST',
+			headers: {'X-CSRFToken': csrftoken},
+			data: { 
+				'not_missing_list[]': notMissingList,
+				'missing_list[]': missingList
+			}, 
+			mode: 'same-origin',
+			success: function(response) {
+					if(response.error) {
+						alert(response.error);
+					} else {
+						location.reload();
+					}
+				}
+		})
+	})
+})
+
+</script>
+{% endblock content %}

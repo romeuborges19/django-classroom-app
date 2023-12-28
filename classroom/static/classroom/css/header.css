@@ -1,0 +1,19 @@
+body {
+	margin: 0px;
+	padding: 0px;
+}
+
+.header-container {
+	background-color: #041524;
+	padding: 2rem;
+	color: white;
+}
+
+.header-container a{
+	color: white;
+	text-decoration: none;
+	font-size: 32px;
+	font-weight: bold;
+}
+
+
