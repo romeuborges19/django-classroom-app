@@ -5,8 +5,8 @@ from django.views.generic import DetailView, FormView, ListView, TemplateView
 from oauthlib.oauth2 import MissingTokenError
 from classroom.api.api import *
 from classroom.forms import ApprovedListForm, GroupForm
-from classroom.models import ApprovedList, Group
-from classroom.utils import get_comparisons, get_missing_students_list, is_ajax
+from classroom.models import Group, Lists
+from classroom.utils import get_comparisons, get_missing_list, is_ajax
 
 class ClassroomHomeView(TemplateView):
     template_name = "index.html"
@@ -55,7 +55,7 @@ class GroupDetailView(DetailView):
         # Obtém formulário de lista de aprovados
         context['approved_form'] = ApprovedListForm()
 
-        approved_list = ApprovedList.objects.filter(group=group).first()
+        approved_list = Lists.objects.filter(group=group).first()
 
         if approved_list:
             context['approved_list'] = approved_list
@@ -69,7 +69,7 @@ class GroupDetailView(DetailView):
             # Processa o pedido de atualização de lista de estudantes matriculados
 
             group = Group.objects.filter(id=kwargs['pk']).first()
-            lists = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
+            lists = Lists.objects.filter(group_id=kwargs['pk']).first()
             api = GCApi();
             classes_info = api.get_course_data([value[0] for value in group.classes])
             students = []
@@ -78,13 +78,15 @@ class GroupDetailView(DetailView):
                 students.append([group.classes[i][1], course['students']])
 
             lists.enrolled_list = students
-            lists.missing_list = get_missing_students_list(lists)
+            
+            if not lists.missing_list:
+                lists.missing_list = get_missing_list(lists)
             lists.save()
         else:
             # Processa a submissão da lista de alunos aprovados
 
             approved_list_form = ApprovedListForm(request.POST, request.FILES)
-            approved_list = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
+            approved_list = Lists.objects.filter(group_id=kwargs['pk']).first()
 
             if approved_list_form.is_valid():
                 if request.session.has_key('form_error'):
@@ -109,7 +111,7 @@ class MissingStudentsView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        lists = ApprovedList.objects.filter(group_id=self.kwargs['pk']).first()
+        lists = Lists.objects.filter(group_id=self.kwargs['pk']).first()
 
         context['comparison_list'] = get_comparisons(lists)
 
@@ -123,7 +125,7 @@ class MissingStudentsView(DetailView):
         if is_ajax(self.request):
             not_missing_list = self.request.POST.getlist('not_missing_list[]')
             missing_list = self.request.POST.getlist('missing_list[]')
-            lists = ApprovedList.objects.filter(group_id=kwargs['pk']).first()
+            lists = Lists.objects.filter(group_id=kwargs['pk']).first()
 
             # Tratando lista de alunos não faltantes
             for item in not_missing_list:

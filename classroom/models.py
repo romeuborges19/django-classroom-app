@@ -14,8 +14,8 @@ class Group(models.Model):
     def __str__(self):
         return self.name
 
-class ApprovedList(models.Model):
-    # Model que armazena lista de alunos aprovados para um grupo de turmas
+class Lists(models.Model):
+    # Model que armazena listas de alunos necessárias para gerenciamento de grupos de alunos 
 
     approved_list = models.JSONField("List of approved students", default=None, null=True)
     enrolled_list = models.JSONField("List of enrolled students", default=None, null=True)
