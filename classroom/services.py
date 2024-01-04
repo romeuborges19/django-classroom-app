@@ -10,6 +10,8 @@ class InvalidFileFormatError(Exception):
     pass
 
 class SetApprovedStudentsList:
+    # Classe de serviço que controla o processamento da definição da lista de alunos aprovados
+
     def __init__(self, group_id, session, form):
         self.form = form
         self.group = Group.objects.find(group_id)
