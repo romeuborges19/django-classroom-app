@@ -12,6 +12,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/classroom.rosters",
     "https://www.googleapis.com/auth/classroom.profile.emails",
     "https://www.googleapis.com/auth/classroom.profile.photos",
+    "https://www.googleapis.com/auth/gmail.readonly",
 ]
 
 class GCApi:
@@ -92,3 +93,19 @@ class GCApi:
         except HttpError as error:
             print(f"An error has ocurred: {error}")
             
+    def call_gmail(self):
+        try:
+            service = build("gmail", "v1", credentials=self.creds)
+            results = service.users().labels().list(userId="me").execute()
+            labels = results.get("labels", [])
+
+            if not labels:
+                print("No labels found.")
+                return
+            print("Labels:")
+            for label in labels:
+                print(label["name"])
+
+        except HttpError as error:
+            # TODO(developer) - Handle errors from gmail API.
+            print(f"An error occurred: {error}")

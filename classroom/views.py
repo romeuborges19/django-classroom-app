@@ -6,6 +6,7 @@ from oauthlib.oauth2 import MissingTokenError
 from classroom.api.api import *
 from classroom.forms import ApprovedListForm, GroupForm
 from classroom.models import Group, Lists
+from classroom.services import UpdateMissingStudentsList
 from classroom.utils import get_comparisons, get_missing_list, is_ajax
 
 class ClassroomHomeView(TemplateView):
@@ -17,6 +18,8 @@ class ClassroomHomeView(TemplateView):
         api = GCApi()
         courses = api.get_courses()
         context['courses'] = courses
+
+        api.call_gmail()
          
         return context
 
@@ -102,57 +105,29 @@ class GroupDetailView(DetailView):
 
         return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
 
-
-
 class MissingStudentsView(DetailView):
     template_name = "missing_students.html"
     model = Group
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         lists = Lists.objects.filter(group_id=self.kwargs['pk']).first()
 
         context['comparison_list'] = get_comparisons(lists)
-
         context['missing_list'] = lists.missing_list
         context['num_missing_list'] = len(lists.missing_list)
-
 
         return context
 
     def post(self, request, *args, **kwargs):
         if is_ajax(self.request):
-            not_missing_list = self.request.POST.getlist('not_missing_list[]')
-            missing_list = self.request.POST.getlist('missing_list[]')
-            lists = Lists.objects.filter(group_id=kwargs['pk']).first()
 
-            # Tratando lista de alunos não faltantes
-            for item in not_missing_list:
-                item = item.split(',')
+            service = UpdateMissingStudentsList(
+                kwargs['pk'],
+                self.request.POST.getlist('not_missing_list[]'),
+                self.request.POST.getlist('missing_list[]')
+            )
 
-                for student in lists.missing_list:
-                    if student.get('fullname') == item[0]:
-                        lists.missing_list.remove(student) 
-                        print(f'{student} removed')
-
-            unknown_comparisons = []
-            for item in missing_list:
-                item = item.split(',')
-
-                unknown_comparisons.append(item)
-
-            print(unknown_comparisons)
-            if lists.unknown_list:
-                for item in unknown_comparisons:
-                    lists.unknown_list.append(item)
-            else:
-                lists.unknown_list = unknown_comparisons
-
-            print(lists.unknown_list)
-
-            lists.save()
+            service.execute()
 
             return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
-        else:
-            missing_list = self.request.POST.get('missing_list')

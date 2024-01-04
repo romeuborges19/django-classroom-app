@@ -14,6 +14,11 @@ class Group(models.Model):
     def __str__(self):
         return self.name
 
+class ListsManager(models.Manager):
+
+    def find_by_group_id(self, group_id):
+        return self.filter(group_id=group_id).first()
+
 class Lists(models.Model):
     # Model que armazena listas de alunos necessárias para gerenciamento de grupos de alunos 
 
@@ -22,3 +27,14 @@ class Lists(models.Model):
     missing_list = models.JSONField("List of missing students", default=None, null=True)
     unknown_list = models.JSONField("List of unknown students", default=None, null=True)
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="group", default=None)
+
+    objects = ListsManager()
+
+    def clean_not_missing_list(self, not_missing_list):
+        # Tratando lista de alunos não faltantes
+        for item in not_missing_list:
+            item = item.split(',')
+            for student in self.missing_list:
+                if student.get('fullname') == item[0]:
+                    self.missing_list.remove(student) 
+
