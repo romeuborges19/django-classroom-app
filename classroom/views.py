@@ -6,7 +6,7 @@ from oauthlib.oauth2 import MissingTokenError
 from classroom.api.api import *
 from classroom.forms import ApprovedListForm, GroupForm
 from classroom.models import Group, Lists
-from classroom.services import UpdateMissingStudentsList
+from classroom.services import InvalidFileFormatError, SetApprovedStudentsList, UpdateEnrolledStudentsList, UpdateMissingStudentsList
 from classroom.utils import get_comparisons, get_missing_list, is_ajax
 
 class ClassroomHomeView(TemplateView):
@@ -65,43 +65,32 @@ class GroupDetailView(DetailView):
             context['num_approved_list'] = len(approved_list.approved_list)
         else: context['approved_list'] = None
 
+        if self.request.session.has_key('form_error'):
+            context['form_error'] = self.request.session['form_error']
+
         return context
 
     def post(self, request, *args, **kwargs):
         if is_ajax(self.request):
             # Processa o pedido de atualização de lista de estudantes matriculados
+            service = UpdateEnrolledStudentsList(self.kwargs['pk'])
+            service.execute()
 
-            group = Group.objects.filter(id=kwargs['pk']).first()
-            lists = Lists.objects.filter(group_id=kwargs['pk']).first()
-            api = GCApi();
-            classes_info = api.get_course_data([value[0] for value in group.classes])
-            students = []
-
-            for i, course in enumerate(classes_info):
-                students.append([group.classes[i][1], course['students']])
-
-            lists.enrolled_list = students
-            
-            if not lists.missing_list:
-                lists.missing_list = get_missing_list(lists)
-            lists.save()
         else:
             # Processa a submissão da lista de alunos aprovados
 
             approved_list_form = ApprovedListForm(request.POST, request.FILES)
-            approved_list = Lists.objects.filter(group_id=kwargs['pk']).first()
+            
+            service = SetApprovedStudentsList(
+                self.kwargs['pk'], 
+                request.session,
+                approved_list_form
+            )
 
-            if approved_list_form.is_valid():
-                if request.session.has_key('form_error'):
-                    del request.session['form_error']
-
-                if approved_list:
-                    approved_list.delete()
-
-                approved_list_form.instance.group = Group.objects.filter(id=kwargs['pk']).first()
-                approved_list_form.save()
-            else:
-                request.session['form_error'] = approved_list_form.errors
+            try:
+                service.execute()
+            except InvalidFileFormatError:
+                request.session['form_error'] = "Invalid file format. Try uploading a .csv file."
 
         return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
 
@@ -111,7 +100,7 @@ class MissingStudentsView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        lists = Lists.objects.filter(group_id=self.kwargs['pk']).first()
+        lists = Lists.objects.find_by_group_id(self.kwargs['pk'])
 
         context['comparison_list'] = get_comparisons(lists)
         context['missing_list'] = lists.missing_list

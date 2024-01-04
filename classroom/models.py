@@ -2,6 +2,10 @@ from django.db import models
 
 # Create your models here.
 
+class GroupManager(models.Manager):
+    def find(self, id):
+        return self.filter(id=id).first()
+
 class Group(models.Model):
     # Model que armazena grupos de turmas
 
@@ -10,6 +14,8 @@ class Group(models.Model):
     students = models.JSONField("Students", default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
+    objects = GroupManager()
 
     def __str__(self):
         return self.name
@@ -29,12 +35,3 @@ class Lists(models.Model):
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="group", default=None)
 
     objects = ListsManager()
-
-    def clean_not_missing_list(self, not_missing_list):
-        # Tratando lista de alunos não faltantes
-        for item in not_missing_list:
-            item = item.split(',')
-            for student in self.missing_list:
-                if student.get('fullname') == item[0]:
-                    self.missing_list.remove(student) 
-

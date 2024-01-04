@@ -1,5 +1,62 @@
-from classroom.models import Lists
+from classroom.api.api import GCApi
+from classroom.models import Group, Lists
+from classroom.utils import get_missing_list
 
+# Este arquivo contém a camada de serviços para o app classroom.
+# Aqui, serão implementadas as lógicas necessárias para o funcionamento
+# da aplicação.
+
+class InvalidFileFormatError(Exception):
+    pass
+
+class SetApprovedStudentsList:
+    def __init__(self, group_id, session, form):
+        self.form = form
+        self.group = Group.objects.find(group_id)
+        self.lists = Lists.objects.find_by_group_id(group_id)
+        self.session_data = session
+
+    def execute(self):
+        if self.form.is_valid():
+            if self.session_data.has_key('form_error'):
+                del self.session_data['form_error']
+
+            if self.lists:
+                self.lists.delete()
+
+            self.form.instance.group = self.group 
+            self.form.save()
+        else:
+            raise InvalidFileFormatError()
+
+class UpdateEnrolledStudentsList:
+    # Classe de serviço que executa a operação de atualizar a lista 
+    # de alunos matriculados
+
+    def __init__(self, group_id):
+        self.group = Group.objects.find(group_id)
+        self.lists = Lists.objects.find_by_group_id(group_id)
+
+    def execute(self):
+        self.lists.enrolled_list = self._get_students_list()
+        
+        if not self.lists.missing_list:
+            self.lists.missing_list = get_missing_list(self.lists)
+
+        self.lists.save()
+
+    def _get_students_list(self):
+        # Método que obtém, através da API do Google Classroom,
+        # a lista de estudantes matriculados no curso 
+
+        api = GCApi();
+        classes_info = api.get_course_data([value[0] for value in self.group.classes])
+        students = []
+
+        for i, course in enumerate(classes_info):
+            students.append([self.group.classes[i][1], course['students']])
+
+        return students
 
 class UpdateMissingStudentsList:
     # Classe de serviço que controla a atualização da lista de alunos faltantes.
@@ -18,7 +75,6 @@ class UpdateMissingStudentsList:
         self._clean_not_missing_list()
         self._clean_comparison_list()
         self.lists.save()
-        print('sucesso')
 
     def _clean_not_missing_list(self):
         # Tratando lista de alunos não faltantes
