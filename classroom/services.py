@@ -1,4 +1,4 @@
-from classroom.api.api import GCApi
+from classroom.api.api import ClassroomAPI
 from classroom.models import Group, Lists
 from classroom.utils import get_missing_list
 
@@ -51,7 +51,7 @@ class UpdateEnrolledStudentsList:
         # Método que obtém, através da API do Google Classroom,
         # a lista de estudantes matriculados no curso 
 
-        api = GCApi();
+        api = ClassroomAPI();
         classes_info = api.get_course_data([value[0] for value in self.group.classes])
         students = []
 

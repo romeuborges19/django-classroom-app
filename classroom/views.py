@@ -17,11 +17,12 @@ class ClassroomHomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        api = GCApi()
-        courses = api.get_courses()
+        classroom_api = ClassroomAPI()
+        courses = classroom_api.get_courses()
         context['courses'] = courses
 
-        api.call_gmail()
+        gmail_api = GmailAPI()
+        gmail_api.call_gmail()
          
         return context
 

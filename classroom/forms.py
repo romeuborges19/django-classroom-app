@@ -4,7 +4,7 @@ import io
 import csv
 
 from django.utils.version import os
-from classroom.api.api import GCApi
+from classroom.api.api import ClassroomAPI
 from classroom.models import Group, Lists
 
 
@@ -16,7 +16,7 @@ class GroupForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(GroupForm, self).__init__(*args, **kwargs)
-        api = GCApi()
+        api = ClassroomAPI()
 
         CLASSES = [((course['id'], course['name']), course['name']) for course in api.get_courses()]
 
@@ -31,7 +31,7 @@ class GroupForm(forms.ModelForm):
         instance.classes = self.cleaned_data.get('avaliable_classes')
         instance.classes = list(map(eval, instance.classes))
 
-        api = GCApi()
+        api = ClassroomAPI()
         classes_info = api.get_course_data([value[0] for value in instance.classes])
         students = []
 
