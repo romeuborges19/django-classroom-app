@@ -45,6 +45,8 @@ class ClassroomURLsTest(TestCase):
         self.assertEqual(missing_students_url, '/groups/missing/5')
 
 class ClassroomViewsTest(TestCase):
+    # Esta classe contém testes de views simples, que não exigem muitos dados para
+    # seu funcionamento
 
     def setUp(self):
         classes = [["590861439156", "Introdução à Biblioteca Pandas - Python"]]
@@ -81,3 +83,42 @@ class ClassroomViewsTest(TestCase):
 
         response = GroupListView.as_view()(request)
         self.assertEqual(response.status_code, 200)    
+        
+    def test_group_detail_view_is_correct(self):
+        # Testa se a view de detalhe de grupo é carregada corretamente
+        response = self.client.get(reverse(
+            'classroom:group',
+            kwargs={'pk': self.group.pk}
+        ))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'test_group')
+
+
+class MissingStudentsViewTest(TestCase):
+    # Esta classe reúne testes para a view de gerenciamento de alunos faltantes,
+    # que exige maior número de dados para seu funcionamento.
+
+    def setUp(self):
+        classes = [["590861439156", "Introdução à Biblioteca Pandas - Python"]]
+        students = [["Introdução à Biblioteca Pandas - Python", [
+            {"id": 1, "email": "hemmerson.rosa@estudante.ifto.edu.br", "fullname": "Hemmerson Luis Barros da Rosa"}, 
+            {"id": 2, "email": "denise.maranhao@estudante.ifto.edu.br", "fullname": "DENISE VIEIRA MARANHÃO"}, 
+            {"id": 3, "email": "luiz.jupiter@mail.uft.edu.br", "fullname": "Luiz Jupiter Carneiro de Souza"}
+        ]]]
+
+        self.factory = RequestFactory()
+        self.group = Group.objects.create(
+            name="test_group",
+            classes=classes,
+            students=students
+        )
+
+    def test_missing_students_view_is_correct(self):
+        # Testa se a view está sendo carregada corretamente
+        response = self.client.get(reverse(
+            'classroom:missing',
+            kwargs={'pk': self.group.pk}
+        ))
+
+        self.assertEqual(response.status_code, 200)
