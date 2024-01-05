@@ -10,6 +10,8 @@ from classroom.services import InvalidFileFormatError, SetApprovedStudentsList, 
 from classroom.utils import get_comparisons, get_missing_list, is_ajax
 
 class ClassroomHomeView(TemplateView):
+    # View que carrega a página inicial, que lista os cursos disponíveis
+
     template_name = "index.html"
 
     def get_context_data(self, **kwargs):
@@ -24,6 +26,7 @@ class ClassroomHomeView(TemplateView):
         return context
 
 class GroupCreateView(FormView):
+    # View que carrega página para criação de novo grupo de turmas
     template_name = "group_create.html"
     form_class = GroupForm
     success_url = reverse_lazy("classroom:groups")
@@ -36,10 +39,14 @@ class GroupCreateView(FormView):
         return redirect(self.get_success_url()) 
 
 class GroupListView(ListView):
+    # View que carrega a lista de grupos
+
     template_name = "groups.html"
     model = Group
 
 class GroupDetailView(DetailView):
+    # View que carrega a página de detalhes de um grupo de turmas
+
     template_name = "group_detail.html"
     model = Group
 
@@ -58,7 +65,7 @@ class GroupDetailView(DetailView):
         # Obtém formulário de lista de aprovados
         context['approved_form'] = ApprovedListForm()
 
-        approved_list = Lists.objects.filter(group=group).first()
+        approved_list = Lists.objects.find_by_group_id(group.id)
 
         if approved_list:
             context['approved_list'] = approved_list
@@ -78,7 +85,6 @@ class GroupDetailView(DetailView):
 
         else:
             # Processa a submissão da lista de alunos aprovados
-
             approved_list_form = ApprovedListForm(request.POST, request.FILES)
             
             service = SetApprovedStudentsList(
@@ -95,6 +101,7 @@ class GroupDetailView(DetailView):
         return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
 
 class MissingStudentsView(DetailView):
+    # View que carrega página de gerenciamento de lista de alunos faltantes
     template_name = "missing_students.html"
     model = Group
 

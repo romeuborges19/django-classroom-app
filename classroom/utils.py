@@ -5,6 +5,8 @@ def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
 def get_missing_list(lists):
+    # Função que gera lista de alunos faltantes de um grupo a partir da comparação 
+    # entre a lista de alunos aprovados e a lista de alunos já matriculados
     enrolled = lists.enrolled_list
     approved = lists.approved_list
     missing = []
@@ -32,6 +34,11 @@ def get_missing_list(lists):
     return missing
 
 def get_comparisons(lists):
+    # Podem existir alunos que estão matriculados no curso, mas foram registrados
+    # na lista de alunos faltantes. Esta função obtém alunos com nomes semelhantes
+    # na lista de matriculados e de alunos faltantes e disponibiliza as comparações
+    # para que a lista de alunos faltantes seja ajustada manualmente.
+
     enrolled = lists.enrolled_list
     missing = lists.missing_list
 
