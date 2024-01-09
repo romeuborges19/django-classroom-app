@@ -6,6 +6,7 @@ import csv
 from django.utils.version import os
 from classroom.api.api import ClassroomAPI
 from classroom.models import Group, Lists
+from classroom.utils import read_csv
 
 
 
@@ -63,19 +64,13 @@ class ApprovedListForm(forms.ModelForm):
         if approved_list_csv:
             file_types = approved_list_csv.content_type.split('/')
 
+            # Verifica se o arquivo é .csv
             if 'csv' not in file_types:
+                # Caso não seja, envia mensagem de erro para o formulário
                 self.add_error('approved_list_csv', 'Invalid file format. Try uploading a .csv file.')
             else: 
-                f = io.TextIOWrapper(approved_list_csv.file)
-
-                reader = csv.DictReader(f)
-                approved_list_data = []
-
-                for row in reader:
-                    approved_list_data.append({
-                        "fullname": row['fullname'], 
-                        "email": row['email']
-                    })    
+                # Caso seja, lê e armazena os dados do arquivo
+                approved_list_data = read_csv(approved_list_csv.file)
 
                 self.cleaned_data['approved_list'] = approved_list_data
 

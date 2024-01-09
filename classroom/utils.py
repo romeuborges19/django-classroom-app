@@ -1,4 +1,6 @@
+import csv
 from difflib import SequenceMatcher
+import io
 
 
 def is_ajax(request):
@@ -79,3 +81,27 @@ def get_comparisons(lists):
 
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
+
+def read_csv(file):
+    # Função que lê arquivo csv que possui colunas "fullname" e "email" 
+    # e retorna lista com seu conteúdo.
+    f = io.TextIOWrapper(file)
+
+    reader = csv.DictReader(f)
+    content = []
+
+    print(reader)
+    print(f)
+
+    try:
+        for row in reader:
+            print(row)
+            content.append({
+                "fullname": row['fullname'], 
+                "email": row['email']
+            })    
+    except KeyError:
+        print('File column names are invalid.') 
+
+    return content
+

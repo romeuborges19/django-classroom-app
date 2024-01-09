@@ -11,7 +11,6 @@ from classroom.utils import get_comparisons, get_missing_list, is_ajax
 
 class ClassroomHomeView(TemplateView):
     # View que carrega a página inicial, que lista os cursos disponíveis
-
     template_name = "index.html"
 
     def get_context_data(self, **kwargs):
@@ -41,13 +40,11 @@ class GroupCreateView(FormView):
 
 class GroupListView(ListView):
     # View que carrega a lista de grupos
-
     template_name = "groups.html"
     model = Group
 
 class GroupDetailView(DetailView):
     # View que carrega a página de detalhes de um grupo de turmas
-
     template_name = "group_detail.html"
     model = Group
 
@@ -68,7 +65,7 @@ class GroupDetailView(DetailView):
 
         approved_list = Lists.objects.find_by_group_id(group.id)
 
-        if approved_list:
+        if approved_list.approved_list:
             context['approved_list'] = approved_list
             context['num_approved_list'] = len(approved_list.approved_list)
         else: context['approved_list'] = None
@@ -86,6 +83,7 @@ class GroupDetailView(DetailView):
 
         else:
             # Processa a submissão da lista de alunos aprovados
+            print(f'{request.FILES}')
             approved_list_form = ApprovedListForm(request.POST, request.FILES)
             
             service = SetApprovedStudentsList(

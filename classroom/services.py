@@ -38,12 +38,17 @@ class UpdateEnrolledStudentsList:
     def __init__(self, group_id):
         self.group = Group.objects.find(group_id)
         self.lists = Lists.objects.find_by_group_id(group_id)
+        
+        if not self.lists:
+            self.lists = Lists.objects.create(group=self.group)
 
     def execute(self):
         self.lists.enrolled_list = self._get_students_list()
         
-        if not self.lists.missing_list:
-            self.lists.missing_list = get_missing_list(self.lists)
+        # Caso haja uma lista de alunos aprovados, a lista de alunos faltantes será atualizada.
+        if self.lists.approved_list:
+            if not self.lists.missing_list:
+                self.lists.missing_list = get_missing_list(self.lists)
 
         self.lists.save()
 
@@ -71,8 +76,8 @@ class UpdateMissingStudentsList:
         self.missing_list = missing_list
 
     def execute(self):
-        # Função principal da classe, que trata os dados, salva o 
-        # objeto no banco de dados e retorna as listas para a view
+        # Função principal da classe, que trata os dados e salva o 
+        # objeto no banco de dados, que é renderizado na view
 
         self._clean_not_missing_list()
         self._clean_comparison_list()

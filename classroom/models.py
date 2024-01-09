@@ -21,7 +21,6 @@ class Group(models.Model):
         return self.name
 
 class ListsManager(models.Manager):
-
     def find_by_group_id(self, group_id):
         return self.filter(group_id=group_id).first()
 

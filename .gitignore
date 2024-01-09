@@ -13,3 +13,5 @@ classroom/api/__pycache__
 # Removing sensible API data
 classroom/api/credentials.json
 classroom/api/token.json
+
+.pytest_cache
