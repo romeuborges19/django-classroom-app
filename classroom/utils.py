@@ -2,21 +2,36 @@ import csv
 from difflib import SequenceMatcher
 import io
 
+class EnrolledStudentsListDoesNotExist(Exception):
+    pass
+
+
+class ApprovedStudentsListDoesNotExist(Exception):
+    pass 
 
 def is_ajax(request):
+    # Método que verifica se requisição é Ajax
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
 def get_missing_list(lists):
     # Função que gera lista de alunos faltantes de um grupo a partir da comparação 
     # entre a lista de alunos aprovados e a lista de alunos já matriculados
     enrolled = lists.enrolled_list
+    if not enrolled:
+        raise EnrolledStudentsListDoesNotExist()
+
     approved = lists.approved_list
+    if not approved:
+        raise ApprovedStudentsListDoesNotExist()
+
     missing = []
     enrolled_list = []
     enrolled_emails = []
     enrolled_fullnames = []
 
     # Organizando dados dos alunos matriculados
+
+
     for student_group in enrolled:
         for student in student_group[1]:
             student['email'] = student['email'].strip().lower()
@@ -42,7 +57,12 @@ def get_comparisons(lists):
     # para que a lista de alunos faltantes seja ajustada manualmente.
 
     enrolled = lists.enrolled_list
-    missing = lists.missing_list
+    if not enrolled:
+        raise EnrolledStudentsListDoesNotExist()
+
+    approved = lists.approved_list
+    if not approved:
+        raise ApprovedStudentsListDoesNotExist()
 
     comparisons = []
     enrolled_list = []

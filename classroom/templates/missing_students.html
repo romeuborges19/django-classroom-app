@@ -15,6 +15,7 @@
 	<div class="main-container">
 		<div class="content-container">
 			<div class="content-header-container">
+				{% if missing_list %}
 				<div class="missing-students-number">
 					Number of missing_students: {{ num_missing_list }}
 				</div>
@@ -30,11 +31,14 @@
 					</div>
 				{% endfor %}
 			</div>
+			{% endif %}
 		</div>
 		<div class="comparison-container">
+			{% if missing_list %}
 			<div class="comparison-button-container">
 				<button id="update-button">Update missing students list</button>	
 			</div>
+			{% endif %}
 			{% if comparison_list %}
 				<div class="lists-container">
 					<div class="list-container">
@@ -68,9 +72,19 @@
 					</div>
 				</div>
 			{% else %}
-				<div class="message">
-					<p> Sem irregularidades encontradas nas matrículas </p>
-				</div>
+				{% if enrolled_error %}
+					<div class="message">
+						<p> {{ enrolled_error }} </p>
+					</div>
+				{% elif approved_error %}
+					<div class="message">
+						<p> {{ approved_error }} </p>
+					</div>
+				{% else %}
+					<div class="message">
+						<p> Sem irregularidades encontradas nas matrículas </p>
+					</div>
+				{% endif %}
 			{% endif %}
 			
 		</div>
@@ -168,8 +182,11 @@ $(document).ready(function () {
 			}, 
 			mode: 'same-origin',
 			success: function(response) {
-					console.log('certo')
-					window.location = updateUrl;
+					if(response.error) {
+						alert(response.error);
+					} else {
+						location.reload();
+					}
 				}
 		})
 	})

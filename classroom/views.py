@@ -18,7 +18,7 @@ from classroom.services import (
     UpdateEnrolledStudentsList,
     UpdateMissingStudentsList,
 )
-from classroom.utils import get_comparisons, get_missing_list, is_ajax
+from classroom.utils import ApprovedStudentsListDoesNotExist, EnrolledStudentsListDoesNotExist, get_comparisons, get_missing_list, is_ajax
 
 class ClassroomHomeView(TemplateView):
     # View que carrega a página inicial, que lista os cursos disponíveis
@@ -117,9 +117,16 @@ class MissingStudentsView(DetailView):
         context = super().get_context_data(**kwargs)
         lists = Lists.objects.find_by_group_id(self.kwargs['pk'])
 
-        context['comparison_list'] = get_comparisons(lists)
-        context['missing_list'] = lists.missing_list
-        context['num_missing_list'] = len(lists.missing_list)
+        try:
+            context['comparison_list'] = get_comparisons(lists)
+        except EnrolledStudentsListDoesNotExist:
+            context['enrolled_error'] = 'List of enrolled students have not been set yet. Please return and set it.'
+        except ApprovedStudentsListDoesNotExist:
+            context['approved_error'] = 'List of approved students have not been set yet. Please return and set it.'
+
+        if lists.missing_list:
+            context['missing_list'] = lists.missing_list
+            context['num_missing_list'] = len(lists.missing_list)
 
         return context
 
