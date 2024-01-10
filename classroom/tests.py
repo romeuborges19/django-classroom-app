@@ -6,6 +6,7 @@ from django.urls import reverse
 from requests.exceptions import MissingSchema
 from classroom.models import Group, Lists
 
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from classroom.views import ClassroomHomeView, GroupDetailView, GroupListView, MissingStudentsView
 
 # Create your tests here.
@@ -102,10 +103,36 @@ class GroupDetailViewTest(TestCase):
             classes=classes,
             students=students
         )
+        self.lists = Lists.objects.create(
+            enrolled_list=[
+                ["Inteligência Artificial com foco em Sistemas de Recomendação (Turma 1-C)", [
+                    {"id": 1, "email": "arqlucasdantas@gmail.com", "fullname": "Lucas Dantas"}, 
+                    {"id": 2, "email": "joaovitoralves163@gmail.com", "fullname": "I am Jhon (Joãozito)"}, 
+                    {"id": 3, "email": "moiseslopesti2022@gmail.com", "fullname": "moises lopes soares"}]]],
+            missing_list=[
+                {"email": "rafael.mansilha@gmail.com", "fullname": "rafael mansilha murta"}, 
+                {"email": "jr.luizandrade@gmail.com", "fullname": "luiz lopes de andrade júnior"}, 
+                {"email": "lopesnewton8@gmail.com", "fullname": "newton lopes de figueiredo neto"}],
+            unknown_list=[
+                ["rafael mansilha murta", "rafael freitas", "rafael.afmendonca1994@gmail.com"],
+                ["rafael mansilha murta", "rafael de brito albuquerque", "rba0606@gmail.com"],
+                ["luiz lopes de andrade júnior", "luiz carvalho", "maximusmano@gmail.com"]],
+            group=self.group
+        )
+
         self.csv_file_content =[['fullname', 'email'], 
                                 ['Gabriel Reis Nadler Prata','gabrielreisnp@gmail.com'],
                                 ['Rafael Mansilha Murta','rafael.mansilha@gmail.com'],
                                 ['Eduardo de Sá Coêlho Ribeiro Costa','eduardodesacoelho08@gmail.com']]
+
+        self.csv_file = StringIO("""\
+fullname,email
+Gabriel Reis Nadler Prata,gabrielreisnp@gmail.com
+Rafael Mansilha Murta,rafael.mansilha@gmail.com
+Eduardo de Sá Coêlho Ribeiro Costa,eduardodesacoelho08@gmail.com""")
+
+        self.csv_file.name = 'test_file.csv'
+
 
     def test_group_detail_view_is_correct(self):
         # Testa se a view de detalhe de grupo é carregada corretamente
@@ -119,16 +146,27 @@ class GroupDetailViewTest(TestCase):
 
 
     def test_approved_students_list_is_set_correctly(self):
-        with open('test_file.csv', 'w', newline='') as csv_file:
-            wr = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
-            wr.writerow(self.csv_file_content)
+        # Testa se o processo de definição de lista de estudantes aprovados
+        # está sendo realizado corretamente
 
-            response = self.client.post(reverse(
-                'classroom:group',
-                kwargs={'pk': self.group.pk}
-            ), {'approved_list_csv': csv_file}) 
+        response = self.client.post(reverse(
+            'classroom:group',
+            kwargs={'pk': self.group.pk}
+        ), {'approved_list_csv': self.csv_file}, follow=True) 
 
-        self.assertEqual(response.status_code, 200)
+        self.assertTrue(not response.context.get('form_error'))
+
+    def test_approved_students_list_being_set_with_wrong_file_type(self):
+        # Testa se está sendo retornada uma mensagem de erro
+        self.csv_file.name = 'test_file.txt'
+
+        response = self.client.post(reverse(
+            'classroom:group',
+            kwargs={'pk': self.group.pk}
+        ), {'approved_list_csv': self.csv_file}, follow=True) 
+
+        self.assertTrue(response.context.get('form_error'))
+
 
 class MissingStudentsViewTest(TestCase):
     # Esta classe reúne testes para a view de gerenciamento de alunos faltantes,

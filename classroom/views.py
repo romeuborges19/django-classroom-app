@@ -1,12 +1,23 @@
 from difflib import SequenceMatcher
+
+from django.core.serializers import serialize
+from django.core.serializers.json import Serializer
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.test.client import json
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 from oauthlib.oauth2 import MissingTokenError
+
 from classroom.api.api import *
 from classroom.forms import ApprovedListForm, GroupForm
 from classroom.models import Group, Lists
-from classroom.services import InvalidFileFormatError, SetApprovedStudentsList, UpdateEnrolledStudentsList, UpdateMissingStudentsList
+from classroom.services import (
+    InvalidFileFormatError,
+    SetApprovedStudentsList,
+    UpdateEnrolledStudentsList,
+    UpdateMissingStudentsList,
+)
 from classroom.utils import get_comparisons, get_missing_list, is_ajax
 
 class ClassroomHomeView(TemplateView):
@@ -80,16 +91,14 @@ class GroupDetailView(DetailView):
             # Processa o pedido de atualização de lista de estudantes matriculados
             service = UpdateEnrolledStudentsList(self.kwargs['pk'])
             service.execute()
-
         else:
             # Processa a submissão da lista de alunos aprovados
-            print(f'{request.FILES}')
-            approved_list_form = ApprovedListForm(request.POST, request.FILES)
+            form = ApprovedListForm(data=request.POST, files=request.FILES)
             
             service = SetApprovedStudentsList(
                 self.kwargs['pk'], 
                 request.session,
-                approved_list_form
+                form
             )
 
             try:
@@ -97,7 +106,7 @@ class GroupDetailView(DetailView):
             except InvalidFileFormatError:
                 request.session['form_error'] = "Invalid file format. Try uploading a .csv file."
 
-        return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
+            return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
 
 class MissingStudentsView(DetailView):
     # View que carrega página de gerenciamento de lista de alunos faltantes

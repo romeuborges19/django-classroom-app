@@ -19,17 +19,18 @@ class SetApprovedStudentsList:
         self.session_data = session
 
     def execute(self):
-        if self.form.is_valid():
-            if self.session_data.has_key('form_error'):
-                del self.session_data['form_error']
+        try:
+            if self.form.is_valid():
+                if self.session_data.has_key('form_error'):
+                    del self.session_data['form_error']
 
-            if self.lists:
-                self.lists.delete()
+                if self.lists:
+                    self.lists.delete()
 
-            self.form.instance.group = self.group 
-            self.form.save()
-        else:
-            raise InvalidFileFormatError()
+                self.form.instance.group = self.group 
+                self.form.save()
+        except InvalidFileFormatError:
+            raise
 
 class UpdateEnrolledStudentsList:
     # Classe de serviço que executa a operação de atualizar a lista 

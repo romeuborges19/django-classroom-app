@@ -168,11 +168,8 @@ $(document).ready(function () {
 			}, 
 			mode: 'same-origin',
 			success: function(response) {
-					if(response.error) {
-						alert(response.error);
-					} else {
-						location.reload();
-					}
+					console.log('certo')
+					window.location = updateUrl;
 				}
 		})
 	})

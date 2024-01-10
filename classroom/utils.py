@@ -90,18 +90,11 @@ def read_csv(file):
     reader = csv.DictReader(f)
     content = []
 
-    print(reader)
-    print(f)
-
-    try:
-        for row in reader:
-            print(row)
-            content.append({
-                "fullname": row['fullname'], 
-                "email": row['email']
-            })    
-    except KeyError:
-        print('File column names are invalid.') 
+    for row in reader:
+        content.append({
+            "fullname": row['fullname'], 
+            "email": row['email']
+        })    
 
     return content
 
