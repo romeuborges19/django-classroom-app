@@ -82,6 +82,7 @@ class UpdateMissingStudentsList:
     def _clean_not_missing_list(self):
         # Tratando lista de alunos não faltantes
         for item in self.not_missing_list:
+            print(item)
             item = item.split(',')
             for student in self.lists.missing_list:
                 if student.get('fullname') == item[0]:

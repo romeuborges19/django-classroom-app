@@ -84,6 +84,7 @@ def get_comparisons(lists):
             enrolled_fullnames.append(student['fullname'])
 
     for missing_student in missing:
+        next = False
         for fullname in enrolled_fullnames:
             missing_name_split = missing_student['fullname'].split(' ')
             fullname_split = fullname.split(' ')
@@ -91,7 +92,9 @@ def get_comparisons(lists):
             if missing_name_split[0] == fullname_split[0]:
                 similarity = similar(missing_student['fullname'], fullname)
                 if similarity == 1:
-                    ... # TODO: remover estes nomes da lista de alunos faltantes
+                    print(f'removing {missing_student}')
+                    lists.missing_list.remove(missing_student)
+                    next = True
                 if similarity > 0.3:
                     comparison = [missing_student['fullname'], fullname, enrolled_emails[enrolled_fullnames.index(fullname)]]
 
@@ -100,7 +103,10 @@ def get_comparisons(lists):
                             comparisons.append(comparison)
                     else:
                         comparisons.append(comparison)
+        if next:
+            continue
 
+        lists.save()
     return comparisons
 
 def similar(a, b):

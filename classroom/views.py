@@ -121,8 +121,6 @@ class MissingStudentsView(DetailView):
             context['missing_list'] = lists.missing_list
             context['num_missing_list'] = len(lists.missing_list)
 
-        print(context['comparison_list'])
-
         return context
 
     def post(self, request, *args, **kwargs):
