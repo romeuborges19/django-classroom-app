@@ -16,20 +16,31 @@
 			<div class="form-container">
 				{% csrf_token %}
 				<div class="form-title-container">
-					<p>Register Group of Classes</p>
+					<p>Registre um grupo de turmas</p>
 				</div>
 				<div class="form-fields-container">
 					<div class="field-container">
 						{{ form.name.label }}:
 						{% render_field form.name class="form-control" %}
+						{% if form.name.errors %}
+							{% for error in form.name.errors %}
+								<p class="field-error-container">{{ error }}</p>
+							{% endfor %}
+						{% endif %}
 					</div>
 					<div class="field-container">
 						{{ form.avaliable_classes.label }}:
+						{% if form.avaliable_classes.errors %}
+							{% for error in form.avaliable_classes.errors %}
+								<p class="field-error-container">{{ error }}</p>
+							{% endfor %}
+						{% endif %}
 						{% render_field form.avaliable_classes class="checkbox-form-control" %}
+
 					</div>
 				</div>
 				<div class="form-input-container">
-					<input class="form-input" type="submit" value="Create">
+					<input class="form-input" type="submit" value="Criar grupo">
 				</div>
 			</div>
 		</form>

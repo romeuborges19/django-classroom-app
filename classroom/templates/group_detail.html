@@ -14,13 +14,13 @@
 	<div class="main-container">
 		<div class="group-info-container">
 			<div class="group-title-container">
-				<p> Group: <b>{{ group.name }}</b> </p>
-				<p> {{ num_students }} students enrolled </p>
-				<p> {{ num_approved_list }} students expected </p>
+				<p> Grupo: <b>{{ group.name }}</b> </p>
+				<p> {{ num_students }} estudantes matriculados </p>
+				<p> Esperam-se {{ num_approved_list }} estudantes na turma. </p>
 
 				<div class="group-info-input-container">
 					<form method="POST" enctype="multipart/form-data">
-						<button type="button" class="collapse-flex button-top-container">Set approved students list</button>
+						<button type="button" class="collapse-flex button-top-container">Definir lista de estudantes aprovados</button>
 						<div class="approved-input-area-container">
 							{% csrf_token %}
 							
@@ -39,15 +39,15 @@
 							<p class="helptext">Must be a .csv file with the columns "fullname" and "email"</p>
 						</div>
 					</form>
-					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}">Update enrolled students List</button>
-					<p id="loading-message" class="loading-message"> Updating students list. Please wait... </p>
+					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}">Atualizar lista de estudantes matriculados</button>
+					<p id="loading-message" class="loading-message"> Atualizando lista de estudantes matriculados. Aguarde... </p>
 
 					{% if approved_list %}
-						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Check missing students</a>
+						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Conferir lista de estudantes ainda não matriculados</a>
 					{% endif %}
 				</div>
 				<div id="success-message" class="success-message">
-					Enrolled students list successfully updated.
+					Lista de estudantes matriculados atualizada com sucesso
 				</div>
 			</div>
 		

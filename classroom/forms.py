@@ -1,15 +1,10 @@
 from django import forms
-from django.contrib.admin.options import widgets
-import io
-import csv
 
-from django.utils.version import os
 from classroom.api.api import ClassroomAPI
 from classroom.models import Group, Lists
 from classroom.services import InvalidFileFormatError
 from classroom.utils import read_csv
-
-
+from django.utils.translation import gettext as _
 
 class GroupForm(forms.ModelForm):
     class Meta:
@@ -26,7 +21,23 @@ class GroupForm(forms.ModelForm):
             choices=CLASSES,
             widget=forms.CheckboxSelectMultiple,
             required=False,
+            label="Turmas disponíveis"
         )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if not cleaned_data.get('name'):
+            self.add_error('name', forms.ValidationError(
+                _('O nome do grupo não pode ser vazio.'), 
+                code='empty')) 
+        
+        if not cleaned_data.get('avaliable_classes'):
+            self.add_error('avaliable_classes', forms.ValidationError(
+                _('Selecione pelo menos uma turma para fazer parte do grupo.'),
+                code='empty')) 
+
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -67,7 +78,9 @@ class ApprovedListForm(forms.ModelForm):
             # Verifica se o arquivo é .csv
             if 'csv' not in file_types:
                 # Caso não seja, envia mensagem de erro para o formulário
-                raise InvalidFileFormatError()
+                self.add_error('approved_list_csv', forms.ValidationError(
+                    _('Formato de arquivo inválido. Por favor, envie um arquivo .csv.'), 
+                    code='invalid'))
             else: 
                 # Caso seja, lê e armazena os dados do arquivo
                 approved_list_data = read_csv(approved_list_csv.file)

@@ -12,7 +12,7 @@
 <main>
 	<div class="main-container">
 		<div class="main-title-container">
-			<p> List of groups </p>
+			<p> Lista de grupos </p>
 		</div>
 
 		<div class="groups-container">
@@ -21,7 +21,7 @@
 					<div class="group-info-container">
 						<b>{{ group.name }}</b>
 					</div>
-					<a class="button-container" href="{% url 'classroom:group' group.pk %}"> View group </a>
+					<a class="button-container" href="{% url 'classroom:group' group.pk %}"> Ver grupo </a>
 				</div>
 			{% endfor %}
 		</div>

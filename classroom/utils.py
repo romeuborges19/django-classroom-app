@@ -5,9 +5,12 @@ import io
 class EnrolledStudentsListDoesNotExist(Exception):
     pass
 
-
 class ApprovedStudentsListDoesNotExist(Exception):
     pass 
+
+class MissingStudentListDoesNotExist(Exception):
+    pass
+
 
 def is_ajax(request):
     # Método que verifica se requisição é Ajax
@@ -30,7 +33,6 @@ def get_missing_list(lists):
     enrolled_fullnames = []
 
     # Organizando dados dos alunos matriculados
-
 
     for student_group in enrolled:
         for student in student_group[1]:
@@ -64,6 +66,9 @@ def get_comparisons(lists):
     if not approved:
         raise ApprovedStudentsListDoesNotExist()
 
+    missing = lists.missing_list
+    if not missing:
+        raise MissingStudentListDoesNotExist()
     comparisons = []
     enrolled_list = []
     enrolled_emails = []
@@ -95,7 +100,6 @@ def get_comparisons(lists):
                             comparisons.append(comparison)
                     else:
                         comparisons.append(comparison)
-
 
     return comparisons
 

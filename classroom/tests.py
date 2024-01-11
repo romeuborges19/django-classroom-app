@@ -1,15 +1,10 @@
-import csv
 from io import StringIO
-from typing import List
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
-from requests.exceptions import MissingSchema
+from classroom.forms import GroupForm
 from classroom.models import Group, Lists
 
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from classroom.views import ClassroomHomeView, GroupDetailView, GroupListView, MissingStudentsView
-
-# Create your tests here.
+from classroom.views import ClassroomHomeView, GroupCreateView, GroupDetailView, GroupListView, MissingStudentsView
 
 class ClassroomURLsTest(TestCase):
     def test_home_url_is_correct(self):
@@ -86,9 +81,51 @@ class ClassroomViewsTest(TestCase):
         # Testa se a view de criação de grupo é carregada corretamente
         request = self.factory.get(reverse('classroom:create_group'))
 
-        response = GroupListView.as_view()(request)
+        response = GroupCreateView.as_view()(request)
         self.assertEqual(response.status_code, 200)    
-        
+
+
+class CreateGroupFormTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.form_data = {
+            'name':'test_group',
+            'avaliable_classes': ["('590861439156', 'Curso de exploração de dados com Pandas - Python')"]
+        }
+
+    def test_create_group_form_is_valid_with_valid_data(self):
+        # Testa se o formulário é válido com entradas válidas
+        form = GroupForm(data=self.form_data)
+
+        self.assertTrue(form.is_valid())
+
+    def test_create_group_form_is_valid_with_blank_data(self):
+        # Testa se o formulário é válido com entradas em branco. 
+        # Espera-se que form.is_valid() retorne False.
+        self.form_data['name'] = ''
+        self.form_data['avaliable_classes'] = ''
+        form = GroupForm(data=self.form_data)
+
+        self.assertTrue(not form.is_valid())
+
+    def test_create_group_form_is_valid_without_selecting_classes(self):
+        # Testa se o formulário é válido sem que o usuário escolha as turmas do grupo.
+        # Espera-se que form.is_valid() retorne False.
+        self.form_data['name'] = 'test_group'
+        self.form_data['avaliable_classes'] = ''
+        form = GroupForm(data=self.form_data)
+
+        self.assertTrue(not form.is_valid())
+
+    def test_create_group_form_is_valid_without_giving_name(self):
+        # Testa se o formulário é válido sem que o usuário escolha as turmas do grupo.
+        # Espera-se que form.is_valid() retorne False.
+        self.form_data['name'] = ''
+        self.form_data['avaliable_classes'] = ["('590861439156', 'Curso de exploração de dados com Pandas - Python')"]
+        form = GroupForm(data=self.form_data)
+
+        self.assertTrue(not form.is_valid())
+
 class GroupDetailViewTest(TestCase):
     def setUp(self):
         classes = [["590861439156", "Introdução à Biblioteca Pandas - Python"]]
@@ -143,7 +180,6 @@ Eduardo de Sá Coêlho Ribeiro Costa,eduardodesacoelho08@gmail.com""")
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'test_group')
-
 
     def test_approved_students_list_is_set_correctly(self):
         # Testa se o processo de definição de lista de estudantes aprovados

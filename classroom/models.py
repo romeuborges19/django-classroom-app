@@ -9,7 +9,7 @@ class GroupManager(models.Manager):
 class Group(models.Model):
     # Model que armazena grupos de turmas
 
-    name = models.CharField("Group Name", max_length=150)
+    name = models.CharField("Nome do grupo", max_length=150)
     classes = models.JSONField("Classes")
     students = models.JSONField("Students", default=None)
     created_at = models.DateTimeField(auto_now_add=True)
