@@ -16,17 +16,37 @@
 		</div>
 
 		<div class="groups-container">
+			<div class="groups-button-container">
+				<div class="groups-button">
+					<a href={% url 'classroom:create_group' %}> Criar novo grupo </a>
+				</div>
+			</div>
 			{% for group in object_list %}
 				<div class="group-container">
 					<div class="group-info-container">
 						<b>{{ group.name }}</b>
 					</div>
-					<a class="button-container" href="{% url 'classroom:group' group.pk %}"> Ver grupo </a>
-				<button class="button-container remove-button" data-update-url="{% url 'classroom:delete_group' %}" data-group-id="{{group.pk}}"> Deletar </button>
+					<div class="buttons-container">
+						<a class="button-container btn" href="{% url 'classroom:group' group.pk %}"> Ver grupo </a>
+					<button onclick="document.getElementById('delete-message-' + {{ group.id }}).style.display='block'" class="button-container remove-button-style"> Deletar </button>
+					</div>
 				</div>
+			<div id="delete-message-{{ group.id }}" class="modal">
+				<div class="container">
+				  <h1>Deletar grupo</h1>
+					<p>Tem certeza de que deseja deletar o grupo {{ group.name}}?</p>
+
+				  <div class="clearfix">
+						<button onclick="document.getElementById('delete-message-' + {{ group.id }}).style.display='none'" class="button-container btn">Cancelar</button>
+					<button type="button" class="remove-button remove-button-style button-container" data-update-url="{% url 'classroom:delete_group' %}" data-group-id="{{group.pk}}">Deletar</button>
+				  </div>
+				</div>
+			</div>
 			{% endfor %}
 		</div>
 	</div>
+
+
 </main>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{% static 'classroom/js/cookie.js' %}"></script>

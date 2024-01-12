@@ -58,12 +58,12 @@ class ProcessDeleteGroupView(TemplateView):
             group_id = self.request.POST.get('group_id')
 
             service = DeleteGroup(group_id)
-            message = {'error': 'Não foi possível deletar este grupo.'}
             try:
                 service.execute()
-                message = {'success': 'O grupo foi deletado com sucesso'}
             except:
                 message = {'error': 'Não foi possível deletar este grupo.'}
+            else:
+                message = {'success': 'O grupo foi deletado com sucesso'}
 
             return JsonResponse(
                 {'status': message,
