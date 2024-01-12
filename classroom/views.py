@@ -1,13 +1,13 @@
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.http import JsonResponse
+from django.shortcuts import redirect 
+from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 
 from classroom.api.api import *
 from classroom.forms import ApprovedListForm, GroupForm
 from classroom.models import Group, Lists
 from classroom.services import (
-    InvalidFileFormatError,
+    DeleteGroup,
     SetApprovedStudentsList,
     UpdateEnrolledStudentsList,
     UpdateMissingStudentsList,
@@ -29,9 +29,6 @@ class ClassroomHomeView(TemplateView):
         classroom_api = ClassroomAPI()
         courses = classroom_api.get_courses()
         context['courses'] = courses
-
-        gmail_api = GmailAPI()
-        gmail_api.call_gmail()
          
         return context
 
@@ -52,6 +49,26 @@ class GroupListView(ListView):
     # View que carrega a lista de grupos
     template_name = "groups.html"
     model = Group
+
+class ProcessDeleteGroupView(TemplateView):
+    # View que processa o pedido de deleção de grupo e retorna uma
+    # resposta json com o status do processo.
+    def post(self, request, *args, **kwargs):
+        if is_ajax(self.request):
+            group_id = self.request.POST.get('group_id')
+
+            service = DeleteGroup(group_id)
+            message = {'error': 'Não foi possível deletar este grupo.'}
+            try:
+                service.execute()
+                message = {'success': 'O grupo foi deletado com sucesso'}
+            except:
+                message = {'error': 'Não foi possível deletar este grupo.'}
+
+            return JsonResponse(
+                {'status': message,
+                'redirect':reverse('classroom:groups')}
+            )
 
 class GroupDetailView(DetailView):
     # View que carrega a página de detalhes de um grupo de turmas
@@ -75,10 +92,11 @@ class GroupDetailView(DetailView):
 
         approved_list = Lists.objects.find_by_group_id(group.id)
 
-        if approved_list.approved_list:
-            context['approved_list'] = approved_list
-            context['num_approved_list'] = len(approved_list.approved_list)
-        else: context['approved_list'] = None
+        if approved_list:
+            if approved_list.approved_list:
+                context['approved_list'] = approved_list
+                context['num_approved_list'] = len(approved_list.approved_list)
+            else: context['approved_list'] = None
 
         return context
 
@@ -125,7 +143,6 @@ class MissingStudentsView(DetailView):
 
     def post(self, request, *args, **kwargs):
         if is_ajax(self.request):
-
             service = UpdateMissingStudentsList(
                 kwargs['pk'],
                 self.request.POST.getlist('not_missing_list[]'),

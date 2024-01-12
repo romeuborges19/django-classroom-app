@@ -92,7 +92,6 @@ def get_comparisons(lists):
             if missing_name_split[0] == fullname_split[0]:
                 similarity = similar(missing_student['fullname'], fullname)
                 if similarity == 1:
-                    print(f'removing {missing_student}')
                     lists.missing_list.remove(missing_student)
                     next = True
                 if similarity > 0.3:

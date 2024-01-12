@@ -33,7 +33,6 @@ class UpdateEnrolledStudentsList:
     def __init__(self, group_id):
         self.group = Group.objects.find(group_id)
         self.lists = Lists.objects.find_by_group_id(group_id)
-        print(self.lists)
         
         if not self.lists:
             self.lists = Lists.objects.create(group=self.group)
@@ -82,7 +81,6 @@ class UpdateMissingStudentsList:
     def _clean_not_missing_list(self):
         # Tratando lista de alunos não faltantes
         for item in self.not_missing_list:
-            print(item)
             item = item.split(',')
             for student in self.lists.missing_list:
                 if student.get('fullname') == item[0]:
@@ -99,3 +97,20 @@ class UpdateMissingStudentsList:
                 self.lists.unknown_list.append(item)
         else:
             self.lists.unknown_list = unknown_comparisons
+
+class DeleteGroup:
+    # Classe de serviço que realiza a função de deletar um grupo e 
+    # suas listas de estudantes correspondentes.
+    def __init__(self, group_id):
+        self.group = Group.objects.find(group_id)
+        self.lists = Lists.objects.find_by_group_id(group_id)
+
+    def execute(self):
+        # Realiza a deleção das listas, do grupo e retorna o nome do grupo deletado.
+        if self.lists:
+            self.lists.delete()
+
+        group_name = self.group.name
+        self.group.delete()
+
+        return group_name

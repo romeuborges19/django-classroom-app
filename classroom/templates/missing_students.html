@@ -17,10 +17,10 @@
 			<div class="content-header-container">
 				{% if missing_list %}
 				<div class="missing-students-number">
-					Number of missing_students: {{ num_missing_list }}
+					Número de estudantes ainda não matriculados: {{ num_missing_list }}
 				</div>
 				<div class="buttons-container">
-					<button class="header-button" id="view-list-button" data-update-url="{% url 'classroom:missing' group.pk %}">View missing students list</button>
+					<button class="header-button" id="view-list-button" data-update-url="{% url 'classroom:missing' group.pk %}">Ver lista</button>
 
 				</div>
 			</div>
@@ -36,7 +36,7 @@
 		<div class="comparison-container">
 			{% if missing_list %}
 			<div class="comparison-button-container">
-				<button id="update-button">Update missing students list</button>	
+				<button id="update-button">Atualizar lista de estudantes não-matriculados</button>	
 			</div>
 			{% endif %}
 			{% if comparison_list %}
@@ -90,6 +90,7 @@
 		</div>
 </main>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'classroom/js/cookie.js' %}"></script>
 <script>
 
 const notMissingList = []
@@ -182,29 +183,6 @@ $(document).ready(function () {
 	}
 
 	$('#update-button').click(function() {
-		function getCookie(name) {
-			let cookieValue = null;
-			if(document.cookie && document.cookie != '') {
-				const cookies = document.cookie.split(';');
-				for(let i = 0; i < cookies.length; i++) {
-					const cookie = cookies[i].trim();
-
-					if (cookie.substring(0, name.length + 1) === (name + '=')) {
-						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-						break;
-					}
-				}
-			}
-			return cookieValue;
-		}	
-
-
-		for(let i = 0; i < notMissingList.length; i++){
-			console.log(notMissingList[i])
-		}
-		for(let i = 0; i < missingList.length; i++){
-			console.log(missingList[i])
-		}
 		const csrftoken = getCookie('csrftoken');
 		const updateUrl = $(this).data('update-url');
 
