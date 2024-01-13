@@ -39,7 +39,7 @@
 							<p class="helptext">Deve ser um arquivo .csv com colunas "fullname" e "email"</p>
 						</div>
 					</form>
-					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}">Atualizar lista de estudantes matriculados</button>
+					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}" data-group-id="{{ group.pk }}">Atualizar lista de estudantes matriculados</button>
 					<p id="loading-message" class="loading-message"> Atualizando lista de estudantes matriculados. Aguarde... </p>
 
 					{% if approved_list %}
@@ -81,12 +81,13 @@ $(document).ready(function() {
 	$('.update-button').click(function() {
 		$('#loading-message').slideDown("slow");
 		const csrftoken = getCookie('csrftoken');
-
 		const updateUrl = $(this).data('update-url');
+		const groupId = $(this).data('group-id');
 		$.ajax({
 				url: updateUrl,
 				method: 'POST',
 				headers: {'X-CSRFToken': csrftoken},
+				data: {'group_id': groupId},
 				mode: 'same-origin',
 				success: function(response) {
 					if (response.error) {

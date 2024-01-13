@@ -78,9 +78,9 @@ class ApprovedListForm(forms.ModelForm):
             # Verifica se o arquivo é .csv
             if 'csv' not in file_types:
                 # Caso não seja, envia mensagem de erro para o formulário
-                self.add_error('approved_list_csv', forms.ValidationError(
+                raise forms.ValidationError(
                     _('Formato de arquivo inválido. Por favor, envie um arquivo .csv.'), 
-                    code='invalid'))
+                    code='invalid')
             else: 
                 # Caso seja, lê e armazena os dados do arquivo
                 approved_list_data = read_csv(approved_list_csv.file)

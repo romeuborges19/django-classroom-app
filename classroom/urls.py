@@ -10,4 +10,5 @@ urlpatterns=[
     path('groups/missing/<int:pk>', views.MissingStudentsView.as_view(), name='missing'),
     path('groups/create', views.GroupCreateView.as_view(), name='create_group'),
     path('groups/delete', views.ProcessDeleteGroupView.as_view(), name='delete_group'),
+    path('groups/process-list', views.ProcessSetApprovedStudentsListView.as_view(), name="set_approved_list"),
 ]

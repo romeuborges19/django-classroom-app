@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from classroom.api.api import ClassroomAPI
 from classroom.models import Group, Lists
 from classroom.utils import get_missing_list
@@ -19,12 +20,15 @@ class SetApprovedStudentsList:
         self.session_data = session
 
     def execute(self):
-        if self.form.is_valid():
-            if self.lists:
-                self.lists.delete()
+        try:
+            if self.form.is_valid():
+                if self.lists:
+                    self.lists.delete()
 
-            self.form.instance.group = self.group 
-            self.form.save()
+                self.form.instance.group = self.group 
+                self.form.save()
+        except ValidationError:
+            raise
 
 class UpdateEnrolledStudentsList:
     # Classe de serviço que executa a operação de atualizar a lista 
@@ -39,6 +43,7 @@ class UpdateEnrolledStudentsList:
 
     def execute(self):
         self.lists.enrolled_list = self._get_students_list()
+        self.group.students = self.lists.enrolled_list
         
         # Caso haja uma lista de alunos aprovados, a lista de alunos faltantes será atualizada.
         if self.lists.approved_list:
@@ -46,6 +51,7 @@ class UpdateEnrolledStudentsList:
                 self.lists.missing_list = get_missing_list(self.lists)
 
         self.lists.save()
+        self.group.save()
 
     def _get_students_list(self):
         # Método que obtém, através da API do Google Classroom,

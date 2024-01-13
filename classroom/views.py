@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from django.http import JsonResponse
 from django.shortcuts import redirect 
 from django.urls import reverse, reverse_lazy
@@ -78,11 +79,12 @@ class GroupDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         group = self.object 
+        lists = Lists.objects.find_by_group_id(group.id)
 
         # Obtém quantidade de alunos matriculados no curso
         num_students = 0
 
-        for student_group in group.students:
+        for student_group in lists.enrolled_list:
             num_students += len(student_group[1])
 
         context['num_students'] = num_students
@@ -90,12 +92,10 @@ class GroupDetailView(DetailView):
         # Obtém formulário de lista de aprovados
         context['approved_form'] = ApprovedListForm()
 
-        approved_list = Lists.objects.find_by_group_id(group.id)
-
-        if approved_list:
-            if approved_list.approved_list:
-                context['approved_list'] = approved_list
-                context['num_approved_list'] = len(approved_list.approved_list)
+        if lists:
+            if lists.approved_list:
+                context['approved_list'] = lists
+                context['num_approved_list'] = len(lists.approved_list)
             else: context['approved_list'] = None
 
         return context
@@ -118,6 +118,24 @@ class GroupDetailView(DetailView):
             service.execute()
 
         return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
+
+class ProcessSetApprovedStudentsListView(TemplateView):
+    def post(self, request, *args, **kwargs):
+        group_id = request.POST.get('group_id')
+        form = ApprovedListForm(data=request.POST, files=request.FILES)
+        
+        service = SetApprovedStudentsList(
+            group_id, 
+            request.session,
+            form
+        )
+
+        try:
+            service.execute()
+            return JsonResponse({'status': 'success'})
+        except ValidationError as err:
+            print(err.messages)
+            return JsonResponse({'error':'Tipo de arquivo inválido. Tente fazer upload de um arquivo .csv.'})
 
 class MissingStudentsView(DetailView):
     # View que carrega página de gerenciamento de lista de alunos faltantes
