@@ -14,6 +14,11 @@
 {% block content %}
 <main>
 	<div class="main-container">
+		<div class="return-button-container-container">
+			<div class="return-button-container-create">
+				<button class="return-button" onclick="window.history.back()"> Voltar </button>
+			</div>
+		</div>
 		<form method="POST">
 			<div class="form-container">
 				{% csrf_token %}

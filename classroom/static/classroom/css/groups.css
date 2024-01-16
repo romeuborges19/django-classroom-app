@@ -78,7 +78,6 @@ main {
 	background-color: #0c2b45;
 }
 
-* {box-sizing: border-box}
 
 /* Set a style for all buttons */
 
@@ -189,11 +188,16 @@ hr {
   cursor: pointer;
 }
 
-/* Clear floats */
-.clearfix::after {
-  content: "";
-  clear: both;
-  display: table;
+
+.clearfix {
+	display: flex;
+	justify-content: space-around;
+	width: 100%;
+}
+
+.clearfix button {
+	width: 100%;
+	margin-inline: 2px;
 }
 
 /* Change styles for cancel button and delete button on extra small screens */
