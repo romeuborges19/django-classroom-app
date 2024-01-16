@@ -9,7 +9,10 @@ venv
 */__pycache__
 classroom/api/__pycache__
 */migrations/__pycache__
+classroom/tests/__pycache__
 
 # Removing sensible API data
 classroom/api/credentials.json
 classroom/api/token.json
+
+.pytest_cache

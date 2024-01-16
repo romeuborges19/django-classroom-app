@@ -12,9 +12,13 @@ SCOPES = [
     "https://www.googleapis.com/auth/classroom.rosters",
     "https://www.googleapis.com/auth/classroom.profile.emails",
     "https://www.googleapis.com/auth/classroom.profile.photos",
+    "https://www.googleapis.com/auth/gmail.readonly",
 ]
 
-class GCApi:
+class GoogleAPI:
+    # Classe que obtém as credenciais para que seja realizada a conexão
+    # com as APIs disponibilizadas pelo Google.
+
     def __init__(self):
         creds = None
 
@@ -37,6 +41,12 @@ class GCApi:
             self.creds = creds
         else:
             self.creds = None
+
+class ClassroomAPI(GoogleAPI):
+    # Classe que faz a conexão com a API do Google Classroom
+
+    def __init__(self):
+        super(ClassroomAPI, self).__init__()
 
     def get_course_data(self, courses):
         service = build("classroom", "v1", credentials=self.creds)
@@ -91,4 +101,27 @@ class GCApi:
             return result
         except HttpError as error:
             print(f"An error has ocurred: {error}")
-            
+
+class GmailAPI(GoogleAPI):
+    def __init__(self):
+        super(GmailAPI, self).__init__()
+
+    def send_email(self):
+        pass
+
+    def call_gmail(self):
+        try:
+            service = build("gmail", "v1", credentials=self.creds)
+            results = service.users().labels().list(userId="me").execute()
+            labels = results.get("labels", [])
+
+            if not labels:
+                print("No labels found.")
+                return
+            print("Labels:")
+            for label in labels:
+                print(label["name"])
+
+        except HttpError as error:
+            print(f"An error occurred: {error}")
+

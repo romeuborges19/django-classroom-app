@@ -1,13 +1,10 @@
 from django import forms
-from django.contrib.admin.options import widgets
-import io
-import csv
 
-from django.utils.version import os
-from classroom.api.api import GCApi
+from classroom.api.api import ClassroomAPI
 from classroom.models import Group, Lists
-
-
+from classroom.services import InvalidFileFormatError
+from classroom.utils import read_csv
+from django.utils.translation import gettext as _
 
 class GroupForm(forms.ModelForm):
     class Meta:
@@ -16,7 +13,7 @@ class GroupForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(GroupForm, self).__init__(*args, **kwargs)
-        api = GCApi()
+        api = ClassroomAPI()
 
         CLASSES = [((course['id'], course['name']), course['name']) for course in api.get_courses()]
 
@@ -24,14 +21,33 @@ class GroupForm(forms.ModelForm):
             choices=CLASSES,
             widget=forms.CheckboxSelectMultiple,
             required=False,
+            label="Turmas disponíveis"
         )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if not cleaned_data.get('name'):
+            self.add_error('name', forms.ValidationError(
+                _('O nome do grupo não pode ser vazio.'), 
+                code='empty')) 
+        
+        if not cleaned_data.get('avaliable_classes'):
+            self.add_error('avaliable_classes', forms.ValidationError(
+                _('Selecione pelo menos uma turma para fazer parte do grupo.'),
+                code='empty')) 
+
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+
+        # O processo abaixo armazena os dados dos estudantes no atributo 'students',
+        # ao criar o grupo de turmas
         instance.classes = self.cleaned_data.get('avaliable_classes')
         instance.classes = list(map(eval, instance.classes))
 
-        api = GCApi()
+        api = ClassroomAPI()
         classes_info = api.get_course_data([value[0] for value in instance.classes])
         students = []
 
@@ -45,10 +61,66 @@ class GroupForm(forms.ModelForm):
 
         return instance
 
+class UpdateGroupForm(forms.ModelForm):
+    # Formulário responsável por atualizar infomações do grupo
+    class Meta:
+        model = Group
+        fields = ['name']
+
+    def __init__(self, *args, **kwargs):
+        super(UpdateGroupForm, self).__init__(*args, **kwargs)
+        api = ClassroomAPI()
+
+        CLASSES = [((course['id'], course['name']), course['name']) for course in api.get_courses()]
+
+        self.fields['avaliable_classes'] = forms.MultipleChoiceField(
+            choices=CLASSES,
+            widget=forms.CheckboxSelectMultiple,
+            required=False,
+            label="Turmas disponíveis",
+        )
+
+        self.initial = {
+            'name': self.instance.name,
+            'avaliable_classes': self._get_initial()
+        }
+        
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if not cleaned_data.get('name'):
+            self.add_error('name', forms.ValidationError(
+                _('O nome do grupo não pode ser vazio.'), 
+                code='empty')) 
+        
+        if not cleaned_data.get('avaliable_classes'):
+            self.add_error('avaliable_classes', forms.ValidationError(
+                _('Selecione pelo menos uma turma para fazer parte do grupo.'),
+                code='empty')) 
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        instance.classes = self.cleaned_data.get('avaliable_classes')
+        instance.classes = list(map(eval, instance.classes))
+
+        if commit:
+            instance.save()
+
+        return instance
+
+
+    def _get_initial(self):
+        initial = [f"('{course[0]}', '{course[1]}')" for course in self.instance.classes]
+
+        return initial 
+
 class ApprovedListForm(forms.ModelForm):
     class Meta:
         model = Lists
-        exclude = ['approved_list', 'missing_list', 'enrolled_list', 'group']
+        exclude = ['approved_list', 'missing_list', 'enrolled_list', 'unknown_list', 'group']
 
     def __init__(self, *args, **kwargs):
         super(ApprovedListForm, self).__init__(*args, **kwargs)
@@ -57,25 +129,20 @@ class ApprovedListForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        
         approved_list_csv = self.cleaned_data['approved_list_csv']
 
         if approved_list_csv:
             file_types = approved_list_csv.content_type.split('/')
 
+            # Verifica se o arquivo é .csv
             if 'csv' not in file_types:
-                self.add_error('approved_list_csv', 'Invalid file format. Try uploading a .csv file.')
+                # Caso não seja, envia mensagem de erro para o formulário
+                raise forms.ValidationError(
+                    _('Formato de arquivo inválido. Por favor, envie um arquivo .csv.'), 
+                    code='invalid')
             else: 
-                f = io.TextIOWrapper(approved_list_csv.file)
-
-                reader = csv.DictReader(f)
-                approved_list_data = []
-
-                for row in reader:
-                    approved_list_data.append({
-                        "fullname": row['fullname'], 
-                        "email": row['email']
-                    })    
+                # Caso seja, lê e armazena os dados do arquivo
+                approved_list_data = read_csv(approved_list_csv.file)
 
                 self.cleaned_data['approved_list'] = approved_list_data
 

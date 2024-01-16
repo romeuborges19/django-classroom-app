@@ -17,6 +17,7 @@ main {
 }
 
 .content-container {
+	font-family: 'Arimo', sans-serif;
 	display: flex;
 	flex-direction: column;
 	padding: 1.5rem 2rem;
