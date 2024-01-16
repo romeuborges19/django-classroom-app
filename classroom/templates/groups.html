@@ -28,7 +28,8 @@
 					</div>
 					<div class="buttons-container">
 						<a class="button-container btn" href="{% url 'classroom:group' group.pk %}"> Ver grupo </a>
-					<button onclick="document.getElementById('delete-message-' + {{ group.id }}).style.display='block'" class="button-container remove-button-style"> Deletar </button>
+						<a class="button-container btn" href="{% url 'classroom:update_group' group.pk %}"> Editar grupo </a>
+						<button onclick="document.getElementById('delete-message-' + {{ group.id }}).style.display='block'" class="button-container remove-button-style"> Deletar </button>
 					</div>
 				</div>
 			<div id="delete-message-{{ group.id }}" class="modal">

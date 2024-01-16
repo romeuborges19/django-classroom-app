@@ -2,10 +2,10 @@ from django.forms import ValidationError
 from django.http import JsonResponse
 from django.shortcuts import redirect 
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DetailView, FormView, ListView, TemplateView
+from django.views.generic import DetailView, FormView, ListView, TemplateView, UpdateView
 
 from classroom.api.api import *
-from classroom.forms import ApprovedListForm, GroupForm
+from classroom.forms import ApprovedListForm, GroupForm, UpdateGroupForm
 from classroom.models import Group, Lists
 from classroom.services import (
     DeleteGroup,
@@ -39,12 +39,11 @@ class GroupCreateView(FormView):
     form_class = GroupForm
     success_url = reverse_lazy("classroom:groups")
 
-    def form_valid(self, form):
-        self.object = form.save()
-        group = self.object
-        # group.save()
-
-        return redirect(self.get_success_url()) 
+class GroupUpdateView(UpdateView):
+    template_name = "group_update.html"
+    model = Group
+    form_class = UpdateGroupForm
+    success_url = reverse_lazy("classroom:groups")
 
 class GroupListView(ListView):
     # View que carrega a lista de grupos
@@ -81,18 +80,18 @@ class GroupDetailView(DetailView):
         group = self.object 
         lists = Lists.objects.find_by_group_id(group.id)
 
-        # Obtém quantidade de alunos matriculados no curso
-        num_students = 0
-
-        for student_group in lists.enrolled_list:
-            num_students += len(student_group[1])
-
-        context['num_students'] = num_students
-
         # Obtém formulário de lista de aprovados
         context['approved_form'] = ApprovedListForm()
 
+        # Obtém quantidade de alunos matriculados no curso
         if lists:
+            num_students = 0
+
+            for student_group in lists.enrolled_list:
+                num_students += len(student_group[1])
+
+            context['num_students'] = num_students
+
             if lists.approved_list:
                 context['approved_list'] = lists
                 context['num_approved_list'] = len(lists.approved_list)
