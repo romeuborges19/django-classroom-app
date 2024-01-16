@@ -3,12 +3,13 @@
 {% load static %}
 {% load widget_tweaks %}
 
-{% block title %} Create Group of Classes {% endblock title %}
+{% block title %} Home {% endblock title %}
 
 {% block extra_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/form.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'classroom/css/styles.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/form.css' %}">
 {% endblock extra_css %}
+
 
 {% block content %}
 <main>
@@ -22,7 +23,7 @@
 			<div class="form-container">
 				{% csrf_token %}
 				<div class="form-title-container">
-					<p>Registre um grupo de turmas</p>
+					<p>Atualizar um grupo de turmas</p>
 				</div>
 				<div class="form-fields-container">
 					<div class="field-container">
@@ -46,7 +47,7 @@
 					</div>
 				</div>
 				<div class="form-input-container">
-					<input class="form-input" type="submit" value="Criar grupo">
+					<input class="form-input" type="submit" value="Atualizar grupo">
 				</div>
 			</div>
 		</form>

@@ -15,11 +15,12 @@
 	<div class="main-container">
 		<div class="content-container">
 			<div class="content-header-container">
+				{% if missing_list %}
 				<div class="missing-students-number">
-					Number of missing_students: {{ num_missing_list }}
+					Número de estudantes ainda não matriculados: {{ num_missing_list }}
 				</div>
 				<div class="buttons-container">
-					<button class="header-button" id="view-list-button" data-update-url="{% url 'classroom:missing' group.pk %}">View missing students list</button>
+					<button class="header-button" id="view-list-button" data-update-url="{% url 'classroom:missing' group.pk %}">Ver lista</button>
 
 				</div>
 			</div>
@@ -30,11 +31,14 @@
 					</div>
 				{% endfor %}
 			</div>
+			{% endif %}
 		</div>
 		<div class="comparison-container">
+			{% if missing_list %}
 			<div class="comparison-button-container">
-				<button id="update-button">Update missing students list</button>	
+				<button id="update-button">Atualizar lista de estudantes não-matriculados</button>	
 			</div>
+			{% endif %}
 			{% if comparison_list %}
 				<div class="lists-container">
 					<div class="list-container">
@@ -68,14 +72,25 @@
 					</div>
 				</div>
 			{% else %}
-				<div class="message">
-					<p> Sem irregularidades encontradas nas matrículas </p>
-				</div>
+				{% if enrolled_error %}
+					<div class="message">
+						<p> {{ enrolled_error }} </p>
+					</div>
+				{% elif approved_error %}
+					<div class="message">
+						<p> {{ approved_error }} </p>
+					</div>
+				{% else %}
+					<div class="message">
+						<p> Sem irregularidades encontradas nas matrículas </p>
+					</div>
+				{% endif %}
 			{% endif %}
 			
 		</div>
 </main>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'classroom/js/cookie.js' %}"></script>
 <script>
 
 const notMissingList = []
@@ -107,21 +122,36 @@ $(document).ready(function () {
 
 			$(this).parent().parent().appendTo('.selected');
 		}
-
+		for(let i = 0; i < notMissingList.length; i++){
+			console.log(notMissingList[i])
+		}
 	})
 
 	$('.no-button').click(function() {
 		var data = $(this).val();
 		data = data.split(',');
 
-		var index = searchInArray(notMissingList, data[0]);
-		if (index !== false) {
-			notMissingList.splice(index, 1);
+		if($(this).parent().parent().parent()[0].className == 'not-selected') {
+			var notSelected = true;
+		} else {
+			var notSelected = false;
 		}
 
-		index = searchInArray(missingList, data[1]);
-		if (index === false) {
+		if(!notSelected) {
+			var index = searchInArray(notMissingList, data[0]);
+			if (index !== false) {
+				console.log('removendo ' + notMissingList[index])
+				notMissingList.splice(index, 1);
+			} 
+		}
+
+		if (!searchForArray(data, missingList)) {
+			console.log('inserindo ' + data)
 			missingList.push(data);
+		}
+
+		for(let i = 0; i < missingList.length; i++){
+			console.log(missingList[i])
 		}
 
 		$(this).parent().parent().appendTo('.not-enrolled');
@@ -138,23 +168,21 @@ $(document).ready(function () {
 		return false;
 	}
 
-	$('#update-button').click(function() {
-		function getCookie(name) {
-			let cookieValue = null;
-			if(document.cookie && document.cookie != '') {
-				const cookies = document.cookie.split(';');
-				for(let i = 0; i < cookies.length; i++) {
-					const cookie = cookies[i].trim();
-
-					if (cookie.substring(0, name.length + 1) === (name + '=')) {
-						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-						break;
-					}
+	function searchForArray(arr1, arr2) {
+		var i, j, current;
+		for(i = 0; i < arr2.length; i++) {
+			if(arr1.length == arr2[i].length) {
+				current = arr2[i];
+				for(j = 0; j < arr1.length && arr1[j] == current[j]; ++j);
+				if(j === arr1.length) {
+					return true;
 				}
 			}
-			return cookieValue;
-		}	
+		}
+		return false;
+	}
 
+	$('#update-button').click(function() {
 		const csrftoken = getCookie('csrftoken');
 		const updateUrl = $(this).data('update-url');
 

@@ -7,20 +7,27 @@
 
 {% block extra_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'classroom/css/group_detail.css' %}">
+
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/styles.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
 <main>
 	<div class="main-container">
+		<div class="return-button-container-container">
+			<div class="return-button-container-create">
+				<button class="return-button" onclick="window.history.back()"> Voltar </button>
+			</div>
+		</div>
 		<div class="group-info-container">
 			<div class="group-title-container">
-				<p> Group: <b>{{ group.name }}</b> </p>
-				<p> {{ num_students }} students enrolled </p>
-				<p> {{ num_approved_list }} students expected </p>
+				<p> Grupo: <b>{{ group.name }}</b> </p>
+				<p> {{ num_students }} estudantes matriculados </p>
+				<p> Esperam-se {{ num_approved_list }} estudantes na turma. </p>
 
 				<div class="group-info-input-container">
 					<form method="POST" enctype="multipart/form-data">
-						<button type="button" class="collapse-flex button-top-container">Set approved students list</button>
+						<button type="button" class="collapse-flex button-top-container">Definir lista de estudantes aprovados</button>
 						<div class="approved-input-area-container">
 							{% csrf_token %}
 							
@@ -29,27 +36,25 @@
 								<div class="approved-input-container">
 									{{ field }}
 
-									<input class="approved-submit" type="submit" value="Set">
+									<input class="approved-submit" type="submit" value="Definir">
 								</div>
 							{% endfor %}
-							{% for field, error in request.session.form_error.items %}
-								{% for err in error %}
-									<div class="form-error-container">{{ err }}</div>
-								{% endfor %}
-							{% endfor %}
+							{% if form_error %}
+								<div class="form-error-container">{{ form_error }} </div>
+							{% endif %}
 
-							<p class="helptext">Must be a .csv file with the columns "fullname" and "email"</p>
+							<p class="helptext">Deve ser um arquivo .csv com colunas "fullname" e "email"</p>
 						</div>
 					</form>
-					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}">Update enrolled students List</button>
-					<p id="loading-message" class="loading-message"> Updating students list. Please wait... </p>
+					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}" data-group-id="{{ group.pk }}">Atualizar lista de estudantes matriculados</button>
+					<p id="loading-message" class="loading-message"> Atualizando lista de estudantes matriculados. Aguarde... </p>
 
 					{% if approved_list %}
-						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Check missing students</a>
+						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Conferir lista de estudantes ainda não matriculados</a>
 					{% endif %}
 				</div>
 				<div id="success-message" class="success-message">
-					Enrolled students list successfully updated.
+					Lista de estudantes matriculados atualizada com sucesso
 				</div>
 			</div>
 		
@@ -62,7 +67,7 @@
 						<div class="class-title-container">
 							<p> {{ student_group.0 }}</p>
 						</div>
-						<button type="button" class="collapse button-container">View student list</button>
+						<button type="button" class="collapse button-container">Ver lista de estudantes matriculados</button>
 						<div class="class-students-container">
 						{% for student in student_group.1 %}
 							<div class="class-student-container">
@@ -77,35 +82,19 @@
 	</div>
 </main>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'classroom/js/cookie.js' %}"></script>
 <script>
-
 $(document).ready(function() {
 	$('.update-button').click(function() {
-		function getCookie(name) {
-			let cookieValue = null;
-			if(document.cookie && document.cookie != '') {
-				const cookies = document.cookie.split(';');
-				for(let i = 0; i < cookies.length; i++) {
-					const cookie = cookies[i].trim();
-
-					if (cookie.substring(0, name.length + 1) === (name + '=')) {
-						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-						break;
-					}
-				}
-			}
-			return cookieValue;
-		}	
-
-
 		$('#loading-message').slideDown("slow");
 		const csrftoken = getCookie('csrftoken');
-
 		const updateUrl = $(this).data('update-url');
+		const groupId = $(this).data('group-id');
 		$.ajax({
 				url: updateUrl,
 				method: 'POST',
 				headers: {'X-CSRFToken': csrftoken},
+				data: {'group_id': groupId},
 				mode: 'same-origin',
 				success: function(response) {
 					if (response.error) {
@@ -116,6 +105,7 @@ $(document).ready(function() {
 						setTimeout(() => {
 							$('#success-message').slideUp("slow");
 					    }, 5000);	
+						location.reload()
 					}
 				}
 			})

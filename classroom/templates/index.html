@@ -15,7 +15,7 @@
 	<div class="main-container">
 		<div class="main-info-container">
 			<div class="main-title-container">
-				<p>Courses: </p>
+				<p>Turmas: </p>
 			</div>
 			<div class="courses-container">
 				{% for course in courses %}
@@ -27,10 +27,10 @@
 		</div>
 		<div class="main-buttons-container">
 			<a href="{% url 'classroom:create_group' %}" class="button-container">
-				Create Group
+				Criar grupo de turmas
 			</a>
 			<a href="{% url 'classroom:groups' %}" class="button-container">
-				See Groups
+				Ver grupos de turmas
 			</a>
 		</div>
 	</div>

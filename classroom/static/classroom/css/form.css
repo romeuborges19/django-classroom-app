@@ -66,3 +66,9 @@ main {
 .form-input:hover {
 	background-color: #0c2b45;
 }
+
+.field-error-container{
+	color: red;
+	font-size: 14px;
+	margin-block: 0px 5px;
+}
