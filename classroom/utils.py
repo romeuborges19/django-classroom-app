@@ -69,6 +69,7 @@ def get_comparisons(lists):
     missing = lists.missing_list
     if not missing:
         raise MissingStudentListDoesNotExist()
+
     comparisons = []
     enrolled_list = []
     enrolled_emails = []

@@ -7,11 +7,17 @@
 
 {% block extra_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'classroom/css/form.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/styles.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
 <main>
 	<div class="main-container">
+		<div class="return-button-container-container">
+			<div class="return-button-container-create">
+				<a class="return-button" href="{% url 'classroom:groups' %}"> Voltar </a>
+			</div>
+		</div>
 		<form method="POST">
 			<div class="form-container">
 				{% csrf_token %}

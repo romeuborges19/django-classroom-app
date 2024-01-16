@@ -52,22 +52,22 @@ main {
 
 .remove-button-style  {
 	background-color: white;
-	border: 2px solid #041524;
-	color: #041524;
-}
-
-.remove-button-style:hover {
-	background-color: #e3e3e3;
+	border: none;
 }
 
 .buttons-container {
 	display: flex;
-	gap: 5px;
+	align-items: center;
+	gap: 15px;
 }
 
 .buttons-container a{
-	background-color: #041524;
-	font-size: 14px;
+	transform: 1000ms;
+	transition: ease-in-out;
+}
+
+.buttons-container a:hover{
+	transform: scale(1.1);
 }
 
 .btn {

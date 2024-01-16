@@ -7,11 +7,18 @@
 
 {% block extra_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'classroom/css/group_detail.css' %}">
+
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/styles.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
 <main>
 	<div class="main-container">
+		<div class="return-button-container-container">
+			<div class="return-button-container-create">
+				<a class="return-button" href="{% url 'classroom:groups' %}"> Voltar </a>
+			</div>
+		</div>
 		<div class="group-info-container">
 			<div class="group-title-container">
 				<p> Grupo: <b>{{ group.name }}</b> </p>
@@ -29,7 +36,7 @@
 								<div class="approved-input-container">
 									{{ field }}
 
-									<input class="approved-submit" type="submit" value="Set">
+									<input class="approved-submit" type="submit" value="Definir">
 								</div>
 							{% endfor %}
 							{% if form_error %}
