@@ -12,4 +12,7 @@ urlpatterns=[
     path('groups/delete', views.ProcessDeleteGroupView.as_view(), name='delete_group'),
     path('groups/update/<int:pk>', views.GroupUpdateView.as_view(), name='update_group'),
     path('groups/process-list', views.ProcessSetApprovedStudentsListView.as_view(), name="set_approved_list"),
+    path('groups/<int:pk>/email-students', views.EmailStudentsView.as_view(), name="email_students"),
+    path('groups/<int:pk>/email-students/send', views.SendInvitationsView.as_view(), name="invite"),
+
 ]

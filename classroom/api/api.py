@@ -1,6 +1,9 @@
 import os.path
+from email.message import EmailMessage
 
 from google.auth.transport.requests import Request
+from google.oauth2 import service_account
+from google.oauth2.challenges import base64
 from google.oauth2.credentials import Credentials, credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -13,6 +16,10 @@ SCOPES = [
     "https://www.googleapis.com/auth/classroom.profile.emails",
     "https://www.googleapis.com/auth/classroom.profile.photos",
     "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.send",
+    "https://www.googleapis.com/auth/gmail.compose",
+    "https://www.googleapis.com/auth/gmail.modify",
+    "https://mail.google.com/"
 ]
 
 class GoogleAPI:
@@ -21,6 +28,7 @@ class GoogleAPI:
 
     def __init__(self):
         creds = None
+
 
         if os.path.exists("classroom/api/token.json"):
             creds = Credentials.from_authorized_user_file("classroom/api/token.json", SCOPES)
@@ -42,12 +50,6 @@ class GoogleAPI:
         else:
             self.creds = None
 
-class ClassroomAPI(GoogleAPI):
-    # Classe que faz a conexão com a API do Google Classroom
-
-    def __init__(self):
-        super(ClassroomAPI, self).__init__()
-
     def get_course_data(self, courses):
         service = build("classroom", "v1", credentials=self.creds)
 
@@ -57,27 +59,32 @@ class ClassroomAPI(GoogleAPI):
                 course = service.courses().get(id=course_id).execute()
                 api_query = service.courses().students().list(courseId=course_id).execute()
                 students_data = []
-                students_data.append(api_query['students'])
+                if api_query.get('students'):
+                    students_data.append(api_query.get('students'))
 
-                while 'nextPageToken' in api_query:
-                    api_query = service.courses().students().list(
-                        courseId=course_id, 
-                        pageToken=api_query['nextPageToken']).execute()
+                    while 'nextPageToken' in api_query:
+                        api_query = service.courses().students().list(
+                            courseId=course_id, 
+                            pageToken=api_query['nextPageToken']).execute()
 
-                    students_data.append(api_query['students'])                   
+                        students_data.append(api_query['students'])                   
 
-                students_list = []
-                i = 1
-                for students in students_data:
-                    for student in students:
-                        students_list.append({"id": i,
-                                              "fullname": student['profile']['name']['fullName'], 
-                                              "email": student['profile']['emailAddress']})
-                        
-                        i += 1
-                
-                course['students'] = students_list
-                classes_info.append(course)
+                    students_list = []
+                    i = 1
+                    for students in students_data:
+                        for student in students:
+                            students_list.append({"id": i,
+                                                  "fullname": student['profile']['name']['fullName'], 
+                                                  "email": student['profile']['emailAddress']})
+                            
+                            i += 1
+                    
+                    course['students'] = students_list
+                    classes_info.append(course)
+                else:
+                    course['students'] = ''
+                    classes_info.append(course)
+
             return classes_info
         except HttpError as error:
             print(f"An error has ocurred: {error}")
@@ -102,12 +109,37 @@ class ClassroomAPI(GoogleAPI):
         except HttpError as error:
             print(f"An error has ocurred: {error}")
 
-class GmailAPI(GoogleAPI):
-    def __init__(self):
-        super(GmailAPI, self).__init__()
+    def send_invitations(self, course_id, receipt_list):
+        try:
+            service = build("classroom", "v1", credentials=self.creds)
 
-    def send_email(self):
-        pass
+            for email in receipt_list:
+                # invitation = service.invitations().create(body={'courseId':course_id, 'role':'STUDENT', 'userId': email}).execute()
+                print(f'convite NÃO enviado para {email}. ')
+        except HttpError as error:
+            print(f"An error has ocurred: {error}")
+
+    def send_email(self, email_list, subject: str, content: str):
+        try:
+            service = build("gmail", "v1", credentials=self.creds)
+            
+            message = EmailMessage()
+            message.set_content(content)
+
+            message["To"] = "romeuborges19@gmail.com" 
+            message["From"] = "comais@mail.uft.edu.br"
+            message["Subject"] = subject
+
+            encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+            create_message = {"raw": encoded_message}
+
+            send_message = (
+                service.users().messages().send(userId="me", body=create_message).execute()
+            )
+
+            print(f'message id: {send_message["id"]}')
+        except HttpError as error:
+            print(f"An error occurred: {error}")
 
     def call_gmail(self):
         try:
@@ -124,4 +156,3 @@ class GmailAPI(GoogleAPI):
 
         except HttpError as error:
             print(f"An error occurred: {error}")
-

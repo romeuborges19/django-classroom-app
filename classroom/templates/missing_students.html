@@ -7,12 +7,25 @@
 
 {% block extra_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'classroom/css/missing_students.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/styles.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
 <main>
 	{% csrf_token %}
 	<div class="main-container">
+			<div class="return-button-container-container">
+				<div class="return-button-container-create">
+					<button class="return-button" onclick="window.history.back()"> Voltar </button>
+				</div>
+			</div>
+		<div class="email-success-message-container">
+			{% if email_success %}
+				<div class="email-success-message">
+				{{ email_success }}
+				</div>
+			{% endif %}
+		</div>
 		<div class="content-container">
 			<div class="content-header-container">
 				{% if missing_list %}
@@ -36,7 +49,8 @@
 		<div class="comparison-container">
 			{% if missing_list %}
 			<div class="comparison-button-container">
-				<button id="update-button">Atualizar lista de estudantes não-matriculados</button>	
+				<button class="body-button" id="update-button">Atualizar lista de estudantes não-matriculados</button>	
+				<a class="body-button" href={% url 'classroom:email_students' object.id %}>Enviar e-mail para estudantes não-matriculados</a>
 			</div>
 			{% endif %}
 			{% if comparison_list %}
@@ -97,6 +111,10 @@ const notMissingList = []
 const missingList = []
 
 $(document).ready(function () {
+	setTimeout(() => {
+		$(".email-success-message-container").slideUp("slow");
+	}, 5000);
+
 	var active = false;
 	$('#view-list-button').click(function () {
 		if (active) {

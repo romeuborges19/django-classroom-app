@@ -1,14 +1,17 @@
+from operator import index, sub
 from django.forms import ValidationError
 from django.http import JsonResponse
 from django.shortcuts import redirect 
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, FormView, ListView, TemplateView, UpdateView
+from django.views.generic.edit import FormMixin
 
 from classroom.api.api import *
-from classroom.forms import ApprovedListForm, GroupForm, UpdateGroupForm
+from classroom.forms import ApprovedListForm, EmailMessageForm, GroupForm, UpdateGroupForm
 from classroom.models import Group, Lists
 from classroom.services import (
     DeleteGroup,
+    SendEmail,
     SetApprovedStudentsList,
     UpdateEnrolledStudentsList,
     UpdateMissingStudentsList,
@@ -17,6 +20,7 @@ from classroom.utils import (
     ApprovedStudentsListDoesNotExist,
     EnrolledStudentsListDoesNotExist,
     get_comparisons,
+    get_recipient_list,
     is_ajax,
 )
 
@@ -27,7 +31,7 @@ class ClassroomHomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        classroom_api = ClassroomAPI()
+        classroom_api = GoogleAPI()
         courses = classroom_api.get_courses()
         context['courses'] = courses
          
@@ -38,6 +42,14 @@ class GroupCreateView(FormView):
     template_name = "group_create.html"
     form_class = GroupForm
     success_url = reverse_lazy("classroom:groups")
+
+
+    def form_valid(self, form):
+        self.object = form.save()
+        group = self.object
+        group.save()
+
+        return redirect(self.get_success_url()) 
 
 class GroupUpdateView(UpdateView):
     template_name = "group_update.html"
@@ -87,8 +99,9 @@ class GroupDetailView(DetailView):
         if lists:
             num_students = 0
 
-            for student_group in lists.enrolled_list:
-                num_students += len(student_group[1])
+            if lists.enrolled_list:
+                for student_group in lists.enrolled_list:
+                    num_students += len(student_group[1])
 
             context['num_students'] = num_students
 
@@ -152,6 +165,11 @@ class MissingStudentsView(DetailView):
         except ApprovedStudentsListDoesNotExist:
             context['approved_error'] = 'List of approved students have not been set yet. Please return and set it.'
 
+        email_success_message = self.request.session.get('email_success')
+        if email_success_message:
+            context['email_success'] = email_success_message
+            del self.request.session['email_success']
+
         if lists.missing_list:
             context['missing_list'] = lists.missing_list
             context['num_missing_list'] = len(lists.missing_list)
@@ -169,3 +187,39 @@ class MissingStudentsView(DetailView):
             service.execute()
 
             return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
+
+class EmailStudentsView(FormMixin, DetailView):
+    model = Group
+    template_name = 'email_students.html'
+    form_class = EmailMessageForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        missing_list = Lists.objects.get_missing_list(self.kwargs['pk'])
+        missing_list = [student['email'] for student in missing_list]
+
+        context['recipient_list'] = get_recipient_list(missing_list)
+
+        return context
+
+class SendInvitationsView(DetailView):
+    model = Group
+    template_name = 'teste.html'
+
+    def post(self, request, *args, **kwargs):
+        # lists = Lists.objects.find_by_group_id(kwargs['pk'])
+        # receipt_list = [student['email'] for student in lists.missing_list]
+        subject = self.request.POST.get('subject')
+        content = self.request.POST.get('content')
+
+        service = SendEmail(
+            subject=subject,
+            content=content
+        )     
+
+        service.execute()
+
+        self.request.session['email_success'] = "E-mail enviado com sucesso."
+
+        return redirect(reverse_lazy('classroom:missing', kwargs={'pk':kwargs['pk']}))

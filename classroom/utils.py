@@ -95,7 +95,7 @@ def get_comparisons(lists):
                 if similarity == 1:
                     lists.missing_list.remove(missing_student)
                     next = True
-                if similarity > 0.3:
+                if similarity > 0.3 and not next:
                     comparison = [missing_student['fullname'], fullname, enrolled_emails[enrolled_fullnames.index(fullname)]]
 
                     if lists.unknown_list:
@@ -127,4 +127,13 @@ def read_csv(file):
         })    
 
     return content
+
+def get_recipient_list(email_list):
+    recipient_list = ''
+    for recipient in email_list:
+        sep = ', '
+        if email_list.index(recipient) == (len(email_list)-1):
+            sep = '.'
+        recipient_list += (recipient + sep) 
+    return recipient_list
 

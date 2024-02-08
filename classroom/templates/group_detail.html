@@ -23,7 +23,9 @@
 			<div class="group-title-container">
 				<p> Grupo: <b>{{ group.name }}</b> </p>
 				<p> {{ num_students }} estudantes matriculados </p>
-				<p> Esperam-se {{ num_approved_list }} estudantes na turma. </p>
+				{% if num_approved_list %}
+					<p> Esperam-se {{ num_approved_list }} estudantes na turma. </p>
+				{% endif %}
 
 				<div class="group-info-input-container">
 					<form method="POST" enctype="multipart/form-data">
@@ -50,7 +52,7 @@
 					<p id="loading-message" class="loading-message"> Atualizando lista de estudantes matriculados. Aguarde... </p>
 
 					{% if approved_list %}
-						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Conferir lista de estudantes ainda não matriculados</a>
+						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Gerenciar lista de estudantes ainda não matriculados</a>
 					{% endif %}
 				</div>
 				<div id="success-message" class="success-message">

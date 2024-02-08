@@ -1,6 +1,6 @@
 from django import forms
 
-from classroom.api.api import ClassroomAPI
+from classroom.api.api import GoogleAPI
 from classroom.models import Group, Lists
 from classroom.services import InvalidFileFormatError
 from classroom.utils import read_csv
@@ -13,7 +13,7 @@ class GroupForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(GroupForm, self).__init__(*args, **kwargs)
-        api = ClassroomAPI()
+        api = GoogleAPI()
 
         CLASSES = [((course['id'], course['name']), course['name']) for course in api.get_courses()]
 
@@ -47,7 +47,7 @@ class GroupForm(forms.ModelForm):
         instance.classes = self.cleaned_data.get('avaliable_classes')
         instance.classes = list(map(eval, instance.classes))
 
-        api = ClassroomAPI()
+        api = GoogleAPI()
         classes_info = api.get_course_data([value[0] for value in instance.classes])
         students = []
 
@@ -69,7 +69,7 @@ class UpdateGroupForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(UpdateGroupForm, self).__init__(*args, **kwargs)
-        api = ClassroomAPI()
+        api = GoogleAPI()
 
         CLASSES = [((course['id'], course['name']), course['name']) for course in api.get_courses()]
 
@@ -157,4 +157,21 @@ class ApprovedListForm(forms.ModelForm):
 
         return instance
 
+class EmailMessageForm(forms.Form):
+    subject = forms.CharField(label="Assunto", max_length=100)
+    content = forms.CharField(label="Mensagem", widget=forms.Textarea())
 
+    def clean(self):
+        cleaned_data = super().clean()  
+        
+        if not cleaned_data.get('subject'):
+            self.add_error('subject', forms.ValidationError(
+                _('Você deve inserir um assunto no e-mail'),
+                code='empty'))
+
+        if not cleaned_data.get('content'):
+            self.add_error('content', forms.ValidationError(
+                _('O corpo do e-mail não pode estar vazio'),
+                code='empty'))
+
+        return cleaned_data

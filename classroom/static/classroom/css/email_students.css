@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&family=Arimo:wght@400;500;600;700&family=Kanit:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+main {
+	font-family: 'Arimo', sans-serif;
+}
+
+.main-container {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+.form-container{
+	display: flex;
+	flex-direction: column;
+	width: 70%;
+	margin-top: 3rem;
+}
+
+.form-input-container{
+	display: flex;
+	flex-direction: column;
+}
+
+.form-area-container, .form-container {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.recipient_list {
+	margin: 0px;
+}
+
+form{
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.form-input {
+	padding: 0.7rem 0.5rem;
+	font-size: 16px;
+	border-radius: 4px;
+	border: 1px solid #b0b0b0;
+}
+
+.form-textarea {
+	resize: none;
+	font-family: 'Arimo', sans-serif;
+	padding: 0.7rem 0.5rem;
+	font-size: 16px;
+	border-radius: 4px;
+	border: 1px solid #b0b0b0;
+}
+
+.form-button {
+	background-color: #041524;
+	font-weight: bold;
+	color: white;
+	padding: 0.5rem 2rem;
+	border: none;
+	border-radius: 4px;
+}
+
+.form-button-container {
+	display: flex;
+	flex-direction: row-reverse;
+}
+
+.buttons {
+	display: flex;
+	gap: 15px;
+}
+
+.cancel-button{
+	background-color: #b54151;
+	font-weight: bold;
+	color: white;
+	padding: 0.5rem 2rem;
+	border: none;
+	border-radius: 4px;
+}
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  width: 45%; /* Full width */
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0px 3px 17px 2px rgba(0,0,0,0.4);
+  left: 25%;
+}
+
+.modal-container {
+	z-index: 1;
+}
+
+button:hover {
+	opacity: 0.8;
+}
+
+input:hover {
+	opacity: 0.8;
+}
+
+.review-title {
+	font-weight: bold;
+	margin-block: 2px;
+}
+
+.review-container p{
+	margin-top: 3px;
+}
+
+.review-container {
+	max-width: 100%;
+	overflow-wrap: break-word;
+}
+
+.review-button{
+	background-color: #041524;
+	font-weight: bold;
+	width: 100%;
+	padding-block: 0.5rem;
+	font-size: 14px;
+	color: white;
+	border: none;
+	border-radius: 6px;
+}

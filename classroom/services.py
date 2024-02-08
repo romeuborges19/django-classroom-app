@@ -1,5 +1,5 @@
 from django.forms import ValidationError
-from classroom.api.api import ClassroomAPI
+from classroom.api.api import GoogleAPI
 from classroom.models import Group, Lists
 from classroom.utils import get_missing_list
 
@@ -57,7 +57,7 @@ class UpdateEnrolledStudentsList:
         # Método que obtém, através da API do Google Classroom,
         # a lista de estudantes matriculados no curso 
 
-        api = ClassroomAPI();
+        api = GoogleAPI();
         classes_info = api.get_course_data([value[0] for value in self.group.classes])
         students = []
 
@@ -120,3 +120,22 @@ class DeleteGroup:
         self.group.delete()
 
         return group_name
+
+class SendEmail:
+    def __init__(self, subject, content, email_list=['romeuborges19@gmail.com']):
+        self.email_list = email_list
+        self.subject = subject
+        self.content = content
+
+    def execute(self):
+        api = GoogleAPI()
+        api.send_email(
+            email_list=self.email_list,
+            subject=self.subject,
+            content=self.content
+        )
+
+        api.send_invitations(
+            course_id='653538511313',
+            receipt_list=self.email_list
+        )

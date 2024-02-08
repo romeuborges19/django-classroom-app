@@ -24,6 +24,9 @@ class ListsManager(models.Manager):
     def find_by_group_id(self, group_id):
         return self.filter(group_id=group_id).first()
 
+    def get_missing_list(self, group_id):
+        return self.filter(group_id=group_id).values('missing_list')[0]['missing_list']
+
 class Lists(models.Model):
     # Model que armazena listas de alunos necessárias para gerenciamento de grupos de alunos 
 
