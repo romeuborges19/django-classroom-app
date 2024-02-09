@@ -21,8 +21,27 @@
 		</div>
 		<div class="group-info-container">
 			<div class="group-title-container">
+			<div class="email-success-message-container">
+				{% if email_success %}
+				<div class="email-success-message">
+					{{ email_success }}
+				</div>
+				{% endif %}
+			</div>
+			<div class="email-error-message-container">
+				{% if email_error %}
+				<div class="email-error-message">
+						<b>{{ email_error }}</b>
+				</div>
+				{% endif %}
+			</div>
 				<p> Grupo: <b>{{ group.name }}</b> </p>
-				<p> {{ num_students }} estudantes matriculados </p>
+				{% if num_students %}
+					<p> {{ num_students }} estudantes matriculados </p>
+				{% else %}
+					<p> Nenhum estudante matriculado </p>
+				{% endif %}
+
 				{% if num_approved_list %}
 					<p> Esperam-se {{ num_approved_list }} estudantes na turma. </p>
 				{% endif %}
@@ -88,6 +107,14 @@
 <script src="{% static 'classroom/js/cookie.js' %}"></script>
 <script>
 $(document).ready(function() {
+	setTimeout(() => {
+		$(".email-success-message-container").slideUp("slow");
+	}, 5000);
+
+	setTimeout(() => {
+		$(".email-error-message-container").slideUp("slow");
+	}, 5000);
+
 	$('.update-button').click(function() {
 		$('#loading-message').slideDown("slow");
 		const csrftoken = getCookie('csrftoken');

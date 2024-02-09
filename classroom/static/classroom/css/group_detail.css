@@ -162,3 +162,26 @@ main {
 	color: #0c4223;
 	text-align: center;
 }
+
+.email-error-message {
+	background-color: #d48b85;
+	width: 100%;
+	padding-block: 0.5rem;
+	border-radius: 6px;
+}
+
+.email-error-message-container{
+	width: 100%;
+	text-align: center;
+}
+.email-success-message {
+	background-color: #c0d4a5;
+	width: 100%;
+	padding-block: 0.5rem;
+	border-radius: 6px;
+}
+
+.email-success-message-container{
+	width: 100%;
+	text-align: center;
+}

@@ -17,10 +17,7 @@ from classroom.services import (
     UpdateMissingStudentsList,
 )
 from classroom.utils import (
-    ApprovedStudentsListDoesNotExist,
-    EnrolledStudentsListDoesNotExist,
     get_comparisons,
-    get_recipient_list,
     is_ajax,
 )
 
@@ -95,6 +92,16 @@ class GroupDetailView(DetailView):
         # Obtém formulário de lista de aprovados
         context['approved_form'] = ApprovedListForm()
 
+        email_success_message = self.request.session.get('email_success')
+        if email_success_message:
+            context['email_success'] = email_success_message
+            del self.request.session['email_success']
+
+        email_error_message = self.request.session.get('email_error')
+        if email_error_message:
+            context['email_error'] = email_error_message
+            del self.request.session['email_error']
+
         # Obtém quantidade de alunos matriculados no curso
         if lists:
             num_students = 0
@@ -160,19 +167,15 @@ class MissingStudentsView(DetailView):
 
         try:
             context['comparison_list'] = get_comparisons(lists)
-        except EnrolledStudentsListDoesNotExist:
-            context['enrolled_error'] = 'List of enrolled students have not been set yet. Please return and set it.'
-        except ApprovedStudentsListDoesNotExist:
-            context['approved_error'] = 'List of approved students have not been set yet. Please return and set it.'
+        except Exception as err:
+            context['lists_error'] = err 
 
-        email_success_message = self.request.session.get('email_success')
-        if email_success_message:
-            context['email_success'] = email_success_message
-            del self.request.session['email_success']
 
-        if lists.missing_list:
-            context['missing_list'] = lists.missing_list
-            context['num_missing_list'] = len(lists.missing_list)
+
+        if lists:
+            if lists.missing_list:
+                context['missing_list'] = lists.missing_list
+                context['num_missing_list'] = len(lists.missing_list)
 
         return context
 
@@ -198,21 +201,23 @@ class SendInvitationsView(DetailView):
     template_name = 'teste.html'
 
     def post(self, request, *args, **kwargs):
-        # lists = Lists.objects.find_by_group_id(kwargs['pk'])
-        # receipt_list = [student['email'] for student in lists.missing_list]
         recipient = self.request.POST.get('recipient')
         subject = self.request.POST.get('subject')
         content = self.request.POST.get('content')
 
-        service = SendEmail(
-            group_id=kwargs['pk'],
-            recipient=recipient,
-            subject=subject,
-            content=content
-        )     
+        try:
+            service = SendEmail(
+                group_id=kwargs['pk'],
+                recipient=recipient,
+                subject=subject,
+                content=content
+            )     
 
-        service.execute()
+            service.execute()
+        except Exception as err:
+            self.request.session['email_error'] = f"Impossível enviar e-mail: {err}"
+        else:
+            print("SUCCESSSO")
+            self.request.session['email_success'] = "E-mail enviado com sucesso."
 
-        # self.request.session['email_success'] = "E-mail enviado com sucesso."
-
-        return redirect(reverse_lazy('classroom:missing', kwargs={'pk':kwargs['pk']}))
+        return redirect(reverse_lazy('classroom:group', kwargs={'pk':kwargs['pk']}))

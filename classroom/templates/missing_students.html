@@ -26,6 +26,13 @@
 				</div>
 			{% endif %}
 		</div>
+		<div class="email-error-message-container">
+			{% if email_error %}
+				<div class="email-error-message">
+				{{ email_error }}
+				</div>
+			{% endif %}
+		</div>
 		<div class="content-container">
 			<div class="content-header-container">
 				{% if missing_list %}
@@ -88,11 +95,7 @@
 			{% else %}
 				{% if enrolled_error %}
 					<div class="message">
-						<p> {{ enrolled_error }} </p>
-					</div>
-				{% elif approved_error %}
-					<div class="message">
-						<p> {{ approved_error }} </p>
+						<p> {{ lists_error }} </p>
 					</div>
 				{% else %}
 					<div class="message">

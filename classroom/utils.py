@@ -11,6 +11,9 @@ class ApprovedStudentsListDoesNotExist(Exception):
 class MissingStudentListDoesNotExist(Exception):
     pass
 
+class ListsDoesNotExist(Exception):
+    pass
+
 
 def is_ajax(request):
     # Método que verifica se requisição é Ajax
@@ -58,17 +61,20 @@ def get_comparisons(lists):
     # na lista de matriculados e de alunos faltantes e disponibiliza as comparações
     # para que a lista de alunos faltantes seja ajustada manualmente.
 
+    if not lists:
+        raise ListsDoesNotExist("Listas não definidas.")
+
     enrolled = lists.enrolled_list
     if not enrolled:
-        raise EnrolledStudentsListDoesNotExist()
+        raise EnrolledStudentsListDoesNotExist("Lista de alunos matriculados não foi registrada.")
 
     approved = lists.approved_list
     if not approved:
-        raise ApprovedStudentsListDoesNotExist()
+        raise ApprovedStudentsListDoesNotExist("Lista de alunos aprovados não foi registrada.")
 
     missing = lists.missing_list
     if not missing:
-        raise MissingStudentListDoesNotExist()
+        raise MissingStudentListDoesNotExist("Lista de alunos faltantes não foi registrada.")
 
     comparisons = []
     enrolled_list = []

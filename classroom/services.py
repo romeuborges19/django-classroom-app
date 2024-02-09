@@ -1,7 +1,7 @@
 from django.forms import ValidationError
 from classroom.api.api import GoogleAPI
 from classroom.models import Group, Lists
-from classroom.utils import get_missing_list
+from classroom.utils import ApprovedStudentsListDoesNotExist, EnrolledStudentsListDoesNotExist, ListsDoesNotExist, MissingStudentListDoesNotExist, get_missing_list
 
 # Este arquivo contém a camada de serviços para o app classroom.
 # Aqui, serão implementadas as lógicas necessárias para o funcionamento
@@ -145,24 +145,33 @@ class SendEmail:
 
     def _get_email_list(self):
         lists = Lists.objects.find_by_group_id(self.group_id)
+        if not lists:
+            raise ListsDoesNotExist("Listas associadas ao grupo não foram definidas")
+
         email_list = []
         if self.recipient == "matriculados":
             if lists.enrolled_list:
                 for course in lists.enrolled_list:
                     for student in course[1]:
                         email_list.append(student['email'])
+            else:
+                raise EnrolledStudentsListDoesNotExist("Lista de estudantes matriculados não registrada.")
 
         if self.recipient == "faltantes":
             if lists.missing_list:
                 for course in lists.missing_list:
                     for student in course[1]:
                         email_list.append(student['email'])
+            else:
+                raise MissingStudentListDoesNotExist("Lista de estudantes faltantes não registrada.")
 
         if self.recipient == "aprovados":
             if lists.approved_list:
                 for course in lists.approved_list:
                     for student in course[1]:
                         email_list.append(student['email'])
+            else:
+                raise ApprovedStudentsListDoesNotExist("Lista de estudantes aprovados não registrada.")
 
         return email_list
 
