@@ -132,11 +132,11 @@ class SendEmail:
         api = GoogleAPI()
         email_list = self._get_email_list()
         # !!! CÓDIGO COMENTADO POR QUESTÕES DE SEGURANÇA NO DESENVOLVIMENTO
-        # api.send_email(
-        #     email_list=email_list,
-        #     subject=self.subject,
-        #     content=self.content
-        # )
+        api.send_email(
+            email_list=email_list,
+            subject=self.subject,
+            content=self.content
+        )
 
 #         api.send_invitations(
 #             course_id='653538511313',

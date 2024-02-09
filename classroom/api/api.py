@@ -125,10 +125,13 @@ class GoogleAPI:
             
             message = EmailMessage()
             message.set_content(content)
+            message.set_type("text/html")
+            message.set_charset("UTF-8")
 
             message["To"] = "romeuborges19@gmail.com" 
             message["From"] = "comais@mail.uft.edu.br"
             message["Subject"] = subject
+            print(message)
 
             encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
             create_message = {"raw": encoded_message}

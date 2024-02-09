@@ -205,19 +205,19 @@ class SendInvitationsView(DetailView):
         subject = self.request.POST.get('subject')
         content = self.request.POST.get('content')
 
-        try:
-            service = SendEmail(
-                group_id=kwargs['pk'],
-                recipient=recipient,
-                subject=subject,
-                content=content
-            )     
+        # try:
+        service = SendEmail(
+            group_id=kwargs['pk'],
+            recipient=recipient,
+            subject=subject,
+            content=content
+        )     
 
-            service.execute()
-        except Exception as err:
-            self.request.session['email_error'] = f"Impossível enviar e-mail: {err}"
-        else:
-            print("SUCCESSSO")
-            self.request.session['email_success'] = "E-mail enviado com sucesso."
+        service.execute()
+        # except Exception as err:
+        #     self.request.session['email_error'] = f"Impossível enviar e-mail: {err}"
+        # else:
+        #     print("SUCCESSSO")
+        #     self.request.session['email_success'] = "E-mail enviado com sucesso."
 
         return redirect(reverse_lazy('classroom:group', kwargs={'pk':kwargs['pk']}))
