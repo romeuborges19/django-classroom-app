@@ -193,16 +193,6 @@ class EmailStudentsView(FormMixin, DetailView):
     template_name = 'email_students.html'
     form_class = EmailMessageForm
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        missing_list = Lists.objects.get_missing_list(self.kwargs['pk'])
-        missing_list = [student['email'] for student in missing_list]
-
-        context['recipient_list'] = get_recipient_list(missing_list)
-
-        return context
-
 class SendInvitationsView(DetailView):
     model = Group
     template_name = 'teste.html'
@@ -210,16 +200,19 @@ class SendInvitationsView(DetailView):
     def post(self, request, *args, **kwargs):
         # lists = Lists.objects.find_by_group_id(kwargs['pk'])
         # receipt_list = [student['email'] for student in lists.missing_list]
+        recipient = self.request.POST.get('recipient')
         subject = self.request.POST.get('subject')
         content = self.request.POST.get('content')
 
         service = SendEmail(
+            group_id=kwargs['pk'],
+            recipient=recipient,
             subject=subject,
             content=content
         )     
 
         service.execute()
 
-        self.request.session['email_success'] = "E-mail enviado com sucesso."
+        # self.request.session['email_success'] = "E-mail enviado com sucesso."
 
         return redirect(reverse_lazy('classroom:missing', kwargs={'pk':kwargs['pk']}))

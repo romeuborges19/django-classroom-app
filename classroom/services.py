@@ -122,20 +122,50 @@ class DeleteGroup:
         return group_name
 
 class SendEmail:
-    def __init__(self, subject, content, email_list=['romeuborges19@gmail.com']):
-        self.email_list = email_list
+    def __init__(self, group_id, recipient, subject, content):
+        self.group_id = group_id
+        self.recipient = recipient
         self.subject = subject
         self.content = content
 
     def execute(self):
         api = GoogleAPI()
-        api.send_email(
-            email_list=self.email_list,
-            subject=self.subject,
-            content=self.content
-        )
+        email_list = self._get_email_list()
+        # !!! CÓDIGO COMENTADO POR QUESTÕES DE SEGURANÇA NO DESENVOLVIMENTO
+        # api.send_email(
+        #     email_list=email_list,
+        #     subject=self.subject,
+        #     content=self.content
+        # )
 
-        api.send_invitations(
-            course_id='653538511313',
-            receipt_list=self.email_list
-        )
+#         api.send_invitations(
+#             course_id='653538511313',
+#             receipt_list=self.email_list
+#         )
+
+    def _get_email_list(self):
+        lists = Lists.objects.find_by_group_id(self.group_id)
+        email_list = []
+        if self.recipient == "matriculados":
+            if lists.enrolled_list:
+                for course in lists.enrolled_list:
+                    for student in course[1]:
+                        email_list.append(student['email'])
+
+        if self.recipient == "faltantes":
+            if lists.missing_list:
+                for course in lists.missing_list:
+                    for student in course[1]:
+                        email_list.append(student['email'])
+
+        if self.recipient == "aprovados":
+            if lists.approved_list:
+                for course in lists.approved_list:
+                    for student in course[1]:
+                        email_list.append(student['email'])
+
+        return email_list
+
+            
+
+

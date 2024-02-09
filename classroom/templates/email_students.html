@@ -16,23 +16,23 @@
 		<div class="form-container">
 			<div class="return-button-container-container">
 				<div class="return-button-container-create">
-					<button class="return-button" onclick="window.history.back()"> Voltar </button>
+					<a class="return-button" href="{% url 'classroom:group' object.id %}"> Voltar </a>
 				</div>
 			</div>
 
 			<div class="recipient_list_container">
-				<b>Destinatários:</b><br>
-
-				<p class="recipient_list">
-					{{ recipient_list }}
-				</p>
+			
 			</div>
 
 			<form method="POST" action="{% url 'classroom:invite' object.id %}">
 				{% csrf_token %}
 				<div class="form-area-container">
 					<div class="form-input-container">
-						{{ form.subject.label }}
+						<b>{{ form.recipient.label }}:</b>
+						{% render_field form.recipient class="form-input" %}
+					</div>
+					<div class="form-input-container">
+						<b>{{ form.subject.label }}:</b>
 						{% render_field form.subject class="form-input" %}
 						{% if form.subject.errors %}
 							{% for error in form.subject.errors %}
@@ -41,7 +41,7 @@
 						{% endif %}
 					</div>
 					<div class="form-input-container">
-						{{ form.content.label}}
+						<b>{{ form.content.label }}:</b>
 						{% render_field form.content class="form-textarea" cols="40" rows="15" %}
 						{% if form.content.errors %}
 							{% for error in form.content.errors %}
@@ -55,7 +55,7 @@
 				<div id="confirm-message" class="modal">
 					<div class="container">
 					  <h1>Enviar e-mail</h1>
-						<p>Deseja enviar este e-mail para a lista de alunos faltantes?</p>
+						<p id="review-text"></p>
 						<div class="review-container">
 								<p class="review-title"> Assunto: </p>
 							<p id="subject-review"></p>
@@ -83,10 +83,11 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
-
 	$('#review-button').click(function() {
 		var content = document.getElementById('id_content');
 		var subject = document.getElementById('id_subject');
+		var recipient = document.querySelector('#id_recipient');
+		recipientReview = "Deseja enviar este e-mail para a lista de alunos <b>" + recipient.value + "</b>?"
 
 		var contentReview = content.value
 		var subjectReview = subject.value
@@ -100,6 +101,7 @@ $(document).ready(function() {
 
 		document.getElementById('content-review').innerHTML = contentReview;
 		document.getElementById('subject-review').innerHTML = subjectReview;
+		document.getElementById('review-text').innerHTML = recipientReview;
 	})
 })
 </script>

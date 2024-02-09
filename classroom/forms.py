@@ -6,6 +6,12 @@ from classroom.services import InvalidFileFormatError
 from classroom.utils import read_csv
 from django.utils.translation import gettext as _
 
+RECIPIENTS = [
+    ("matriculados", "Matriculados"),
+    ("faltantes", "Faltantes"),
+    ("aprovados", "Aprovados")
+]
+
 class GroupForm(forms.ModelForm):
     class Meta:
         model = Group
@@ -158,6 +164,10 @@ class ApprovedListForm(forms.ModelForm):
         return instance
 
 class EmailMessageForm(forms.Form):
+    recipient = forms.ChoiceField(
+        label="Destinatários",
+        choices=RECIPIENTS,
+        widget=forms.Select())
     subject = forms.CharField(label="Assunto", max_length=100)
     content = forms.CharField(label="Mensagem", widget=forms.Textarea())
 
