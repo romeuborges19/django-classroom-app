@@ -1,10 +1,9 @@
 from django import forms
+from django.utils.translation import gettext as _
 
 from classroom.api.api import GoogleAPI
-from classroom.models import Group, Lists
-from classroom.services import InvalidFileFormatError
+from classroom.models import Group, Lists, Message
 from classroom.utils import read_csv
-from django.utils.translation import gettext as _
 
 RECIPIENTS = [
     ("matriculados", "Matriculados"),
@@ -15,22 +14,34 @@ RECIPIENTS = [
 class GroupForm(forms.ModelForm):
     class Meta:
         model = Group
-        exclude = ['classes', 'students']
+        exclude = ['classes', 'students', 'associated_form_id']
 
     def __init__(self, *args, **kwargs):
         super(GroupForm, self).__init__(*args, **kwargs)
         api = GoogleAPI()
 
+        form_list = [('0', 'Nenhum')]
+        form_list.extend([((form['id'], form['name'])) for form in api.get_forms()])
+
         CLASSES = [((course['id'], course['name']), course['name']) for course in api.get_courses()]
+        FORMS = form_list
 
         self.fields['avaliable_classes'] = forms.MultipleChoiceField(
             choices=CLASSES,
-            widget=forms.CheckboxSelectMultiple,
+            widget=forms.CheckboxSelectMultiple(),
             required=False,
             label="Turmas disponíveis"
         )
 
+        self.fields['associated_form'] = forms.ChoiceField(
+            choices=FORMS,
+            widget=forms.Select(),
+            required=False,
+            label="Formulário associado",
+        )
+
     def clean(self):
+        print('cleaning data')
         cleaned_data = super().clean()
 
         if not cleaned_data.get('name'):
@@ -61,6 +72,11 @@ class GroupForm(forms.ModelForm):
             students.append([instance.classes[i][1], course['students']])
 
         instance.students = students
+
+        associated_form_id = self.cleaned_data.get('associated_form')
+        if associated_form_id != 0:
+            instance.associated_form_id = associated_form_id
+            print(associated_form_id)
 
         if commit:
             instance.save()
@@ -185,3 +201,4 @@ class EmailMessageForm(forms.Form):
                 code='empty'))
 
         return cleaned_data
+

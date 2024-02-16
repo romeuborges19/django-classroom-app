@@ -19,20 +19,7 @@
 				<a class="return-button" href="{% url 'classroom:group' group.pk %}"> Voltar </a>
 				</div>
 			</div>
-		<div class="email-success-message-container">
-			{% if email_success %}
-				<div class="email-success-message">
-				{{ email_success }}
-				</div>
-			{% endif %}
-		</div>
-		<div class="email-error-message-container">
-			{% if email_error %}
-				<div class="email-error-message">
-				{{ email_error }}
-				</div>
-			{% endif %}
-		</div>
+
 		<div class="content-container">
 			<div class="content-header-container">
 				{% if missing_list %}
@@ -114,9 +101,7 @@ const notMissingList = []
 const missingList = []
 
 $(document).ready(function () {
-	setTimeout(() => {
-		$(".email-success-message-container").slideUp("slow");
-	}, 5000);
+
 
 	var active = false;
 	$('#view-list-button').click(function () {

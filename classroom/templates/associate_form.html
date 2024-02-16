@@ -1,0 +1,20 @@
+{% extends 'base/header.html' %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %} Create Group of Classes {% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="">
+{% endblock extra_css %}
+
+{% block content %}
+<main>
+	<div class="main-container">
+		{% for form in forms %}
+		{{ form.id }} - {{ form.name }}<br>
+		{% endfor %}
+	</div>
+</main>
+{% endblock content %}

@@ -1,0 +1,70 @@
+{% extends 'base/header.html' %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %} Create Group of Classes {% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/message_list.css' %}">
+
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/styles.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+<main>
+	<div class="main-container">
+		<div class="return-button-container-container-2">
+			<div class="return-button-container-create">
+				<a class="return-button" href="{% url 'classroom:group' group_id %}"> Voltar </a>
+			</div>
+		</div>
+		<div class="content-title-container">
+			<p class="content-title">E-mails enviados: </p>
+		</div>
+		<div class="messages-container">
+		{% for message in object_list %}
+		<div class="message-container">
+			<div class="message-time-container">
+					<div class="message-date">{{ message.created_at.date }}</div>
+					<div class="message-time">{{ message.created_at.time }}</div>
+			</div>
+			<div class="message-info-container">
+				<div class="message-subject-container">
+					<b>{{ message.subject }}</b>
+				</div>
+				<div class="message-content-container">
+					{{ message.content }}
+				</div>
+			</div>
+			<div class="message-button-container">
+					<button class="detail-button" onclick="document.getElementById('message-detail-' + {{message.pk}}).style.display='block'"> Detalhes </button>
+			</div>
+		</div>
+		<div id="message-detail-{{ message.pk }}" class="modal">
+			<div class="container">
+			  <h1>Detalhes</h1>
+				<div class="message-data-container">
+					<p class="message-title"> Assunto: </p>
+						<p class="message-review">{{ message.subject }}</p>
+				</div>
+				<div class="message-data-container">
+					<p class="message-title"> Mensagem: </p>
+						<p class="message-review">{{ message.content }}</p>
+				</div>
+				<div class="message-data-container">
+						<p class="message-datetime-info"> Enviado às {{ message.created_at.time }} de {{ message.created_at.date}}</p>
+				</div>
+				<div class="form-button-container">
+					<div class="buttons">
+						<div class="clearfix">
+								<button class="detail-button" type="button" onclick="document.getElementById('message-detail-' + {{message.pk}}).style.display='none'" class="cancel-button btn">Fechar</button>
+						</div>
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+		</div>
+	</div>
+</main>
+{% endblock content %}

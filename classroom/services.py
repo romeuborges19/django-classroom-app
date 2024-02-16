@@ -1,7 +1,14 @@
 from django.forms import ValidationError
+
 from classroom.api.api import GoogleAPI
-from classroom.models import Group, Lists
-from classroom.utils import ApprovedStudentsListDoesNotExist, EnrolledStudentsListDoesNotExist, ListsDoesNotExist, MissingStudentListDoesNotExist, get_missing_list
+from classroom.models import Group, Lists, Message
+from classroom.utils import (
+    ApprovedStudentsListDoesNotExist,
+    EnrolledStudentsListDoesNotExist,
+    ListsDoesNotExist,
+    MissingStudentListDoesNotExist,
+    get_missing_list,
+)
 
 # Este arquivo contém a camada de serviços para o app classroom.
 # Aqui, serão implementadas as lógicas necessárias para o funcionamento
@@ -122,6 +129,8 @@ class DeleteGroup:
         return group_name
 
 class SendEmail:
+    # Classe de serviço que envia e-mail à lista de destinatários especificada
+    # e armazena este e-mail no banco de dados
     def __init__(self, group_id, recipient, subject, content):
         self.group_id = group_id
         self.recipient = recipient
@@ -142,6 +151,17 @@ class SendEmail:
 #             course_id='653538511313',
 #             receipt_list=self.email_list
 #         )
+
+        self._save_message()
+
+    def _save_message(self):
+        group = Group.objects.find(self.group_id)
+        Message.objects.create(
+            recipient=self.recipient,
+            subject=self.subject,
+            content=self.content,
+            group=group
+        )
 
     def _get_email_list(self):
         lists = Lists.objects.find_by_group_id(self.group_id)

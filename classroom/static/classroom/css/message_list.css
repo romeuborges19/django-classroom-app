@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&display=swap');
+
+main {
+	font-family: 'Arimo', sans-serif;
+}
+.main-container {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding-top: 2rem;
+}
+
+.messages-container {
+	width: 70%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.message-container {
+	border: 1px solid #a6a6a6;
+	width: 100%;
+	border-radius: 6px;
+	padding: 1rem;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.message-time-container {
+	width: 15%;
+	display: flex;
+	flex-direction: column;
+}
+
+.message-info-container {
+	width: 70%;
+}
+
+.content-title-container {
+	display: flex;
+	flex-direction: row;
+	width: 70%;
+}
+
+.content-title{
+	font-size: 20px;
+	font-weight: bold;
+}
+
+.message-button-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  width: 45%; /* Full width */
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0px 3px 17px 2px rgba(0,0,0,0.4);
+  left: 25%;
+}
+
+.container h1{
+	margin-top: 0px;
+}
+
+.message-title {
+	margin-bottom: 0px;
+	font-weight: bold;
+}
+
+.message-datetime-info {
+	margin-top: 2rem;
+	margin-bottom: 15px;
+}
+
+.message-review {
+	margin-top: 10px;
+}
+
+.detail-button {
+	padding: 0.5rem 1rem;
+	border-radius: 8px;
+	border: none;
+	background-color: #00897B;
+	font-weight: bold;
+	color: white;
+	transform: 200ms;
+}
+
+.detail-button:hover {
+	opacity: 0.8;
+}
+
+.return-button-container-container-2 {
+	display: flex;
+	justify-content: center;
+	width: 70%;
+}
