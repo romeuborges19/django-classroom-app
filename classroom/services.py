@@ -1,7 +1,14 @@
 from django.forms import ValidationError
-from classroom.api.api import ClassroomAPI
-from classroom.models import Group, Lists
-from classroom.utils import get_missing_list
+
+from classroom.api.api import GoogleAPI
+from classroom.models import Group, Lists, Message
+from classroom.utils import (
+    ApprovedStudentsListDoesNotExist,
+    EnrolledStudentsListDoesNotExist,
+    ListsDoesNotExist,
+    MissingStudentListDoesNotExist,
+    get_missing_list,
+)
 
 # Este arquivo contém a camada de serviços para o app classroom.
 # Aqui, serão implementadas as lógicas necessárias para o funcionamento
@@ -57,7 +64,7 @@ class UpdateEnrolledStudentsList:
         # Método que obtém, através da API do Google Classroom,
         # a lista de estudantes matriculados no curso 
 
-        api = ClassroomAPI();
+        api = GoogleAPI();
         classes_info = api.get_course_data([value[0] for value in self.group.classes])
         students = []
 
@@ -120,3 +127,74 @@ class DeleteGroup:
         self.group.delete()
 
         return group_name
+
+class SendEmail:
+    # Classe de serviço que envia e-mail à lista de destinatários especificada
+    # e armazena este e-mail no banco de dados
+    def __init__(self, group_id, recipient, subject, content):
+        self.group_id = group_id
+        self.recipient = recipient
+        self.subject = subject
+        self.content = content
+
+    def execute(self):
+        api = GoogleAPI()
+        email_list = self._get_email_list()
+        # !!! CÓDIGO COMENTADO POR QUESTÕES DE SEGURANÇA NO DESENVOLVIMENTO
+        api.send_email(
+            email_list=email_list,
+            subject=self.subject,
+            content=self.content
+        )
+
+#         api.send_invitations(
+#             course_id='653538511313',
+#             receipt_list=self.email_list
+#         )
+
+        self._save_message()
+
+    def _save_message(self):
+        group = Group.objects.find(self.group_id)
+        Message.objects.create(
+            recipient=self.recipient,
+            subject=self.subject,
+            content=self.content,
+            group=group
+        )
+
+    def _get_email_list(self):
+        lists = Lists.objects.find_by_group_id(self.group_id)
+        if not lists:
+            raise ListsDoesNotExist("Listas associadas ao grupo não foram definidas")
+
+        email_list = []
+        if self.recipient == "matriculados":
+            if lists.enrolled_list:
+                for course in lists.enrolled_list:
+                    for student in course[1]:
+                        email_list.append(student['email'])
+            else:
+                raise EnrolledStudentsListDoesNotExist("Lista de estudantes matriculados não registrada.")
+
+        if self.recipient == "faltantes":
+            if lists.missing_list:
+                for course in lists.missing_list:
+                    for student in course[1]:
+                        email_list.append(student['email'])
+            else:
+                raise MissingStudentListDoesNotExist("Lista de estudantes faltantes não registrada.")
+
+        if self.recipient == "aprovados":
+            if lists.approved_list:
+                for course in lists.approved_list:
+                    for student in course[1]:
+                        email_list.append(student['email'])
+            else:
+                raise ApprovedStudentsListDoesNotExist("Lista de estudantes aprovados não registrada.")
+
+        return email_list
+
+            
+
+

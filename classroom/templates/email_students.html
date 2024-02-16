@@ -1,0 +1,108 @@
+{% extends 'base/header.html' %}
+
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %} Create Group of Classes {% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/email_students.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'classroom/css/styles.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+<main>
+	<div class="main-container">
+		<div class="form-container">
+			<div class="return-button-container-container">
+				<div class="return-button-container-create">
+					<a class="return-button" href="{% url 'classroom:group' object.id %}"> Voltar </a>
+				</div>
+			</div>
+
+			<div class="recipient_list_container">
+			
+			</div>
+
+			<form method="POST" action="{% url 'classroom:invite' object.id %}">
+				{% csrf_token %}
+				<div class="form-area-container">
+					<div class="form-input-container">
+						<b>{{ form.recipient.label }}:</b>
+						{% render_field form.recipient class="form-input" %}
+					</div>
+					<div class="form-input-container">
+						<b>{{ form.subject.label }}:</b>
+						{% render_field form.subject class="form-input" %}
+						{% if form.subject.errors %}
+							{% for error in form.subject.errors %}
+								<p class="error-container">{{ error }}</p>
+							{% endfor %}
+						{% endif %}
+					</div>
+					<div class="form-input-container">
+						<b>{{ form.content.label }}:</b>
+						{% render_field form.content class="form-textarea" cols="40" rows="15" %}
+						{% if form.content.errors %}
+							{% for error in form.content.errors %}
+								<p class="error-container">{{ error }}</p>
+							{% endfor %}
+						{% endif %}
+					</div>
+				</div>
+				<button class="review-button" type="button" onclick="document.getElementById('confirm-message').style.display='block'" id="review-button">Enviar</button>
+
+				<div id="confirm-message" class="modal">
+					<div class="container">
+					  <h1>Enviar e-mail</h1>
+						<p id="review-text"></p>
+						<div class="review-container">
+								<p class="review-title"> Assunto: </p>
+							<p id="subject-review"></p>
+						</div>
+						<div class="review-container">
+							<p class="review-title"> Mensagem: </p>
+							<p id="content-review"></p>
+						</div>
+
+					    <div class="form-button-container">
+							<div class="buttons">
+								<div class="clearfix">
+									<button type="button" onclick="document.getElementById('confirm-message').style.display='none'" class="cancel-button btn">Cancelar</button>
+								</div>
+								<input class="form-button" type="submit" value="Enviar">
+							</div>
+					    </div>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+</main>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+	$('#review-button').click(function() {
+		var content = document.getElementById('id_content');
+		var subject = document.getElementById('id_subject');
+		var recipient = document.querySelector('#id_recipient');
+		recipientReview = "Deseja enviar este e-mail para a lista de alunos <b>" + recipient.value + "</b>?"
+
+		var contentReview = content.value
+		var subjectReview = subject.value
+		if (contentReview.length === 0) {
+			contentReview = "O corpo do e-mail está vazio";
+		}
+
+		if (subjectReview.length === 0) {
+			subjectReview = "O assunto do e-mail está vazio";
+		}
+
+		document.getElementById('content-review').innerHTML = contentReview;
+		document.getElementById('subject-review').innerHTML = subjectReview;
+		document.getElementById('review-text').innerHTML = recipientReview;
+	})
+})
+</script>
+{% endblock content %}

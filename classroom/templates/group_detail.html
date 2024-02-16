@@ -16,14 +16,35 @@
 	<div class="main-container">
 		<div class="return-button-container-container">
 			<div class="return-button-container-create">
-				<button class="return-button" onclick="window.history.back()"> Voltar </button>
+				<a class="return-button" href="{% url 'classroom:groups' %}"> Voltar </a>
 			</div>
 		</div>
 		<div class="group-info-container">
 			<div class="group-title-container">
+			<div class="email-success-message-container">
+				{% if email_success %}
+				<div class="email-success-message">
+					{{ email_success }}
+				</div>
+				{% endif %}
+			</div>
+			<div class="email-error-message-container">
+				{% if email_error %}
+				<div class="email-error-message">
+						<b>{{ email_error }}</b>
+				</div>
+				{% endif %}
+			</div>
 				<p> Grupo: <b>{{ group.name }}</b> </p>
-				<p> {{ num_students }} estudantes matriculados </p>
-				<p> Esperam-se {{ num_approved_list }} estudantes na turma. </p>
+				{% if num_students %}
+					<p> {{ num_students }} estudantes matriculados </p>
+				{% else %}
+					<p> Nenhum estudante matriculado </p>
+				{% endif %}
+
+				{% if num_approved_list %}
+					<p> Esperam-se {{ num_approved_list }} estudantes na turma. </p>
+				{% endif %}
 
 				<div class="group-info-input-container">
 					<form method="POST" enctype="multipart/form-data">
@@ -48,9 +69,11 @@
 					</form>
 					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}" data-group-id="{{ group.pk }}">Atualizar lista de estudantes matriculados</button>
 					<p id="loading-message" class="loading-message"> Atualizando lista de estudantes matriculados. Aguarde... </p>
+					<a href="{% url 'classroom:send_email' group.pk %}" class="link-button-container">Enviar e-mail para estudantes </a> 
+					<a href="{% url 'classroom:messages' group.pk %}" class="link-button-container">Ver e-mails enviados</a> 
 
 					{% if approved_list %}
-						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Conferir lista de estudantes ainda não matriculados</a>
+						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Gerenciar lista de estudantes ainda não matriculados</a>
 					{% endif %}
 				</div>
 				<div id="success-message" class="success-message">
@@ -85,6 +108,14 @@
 <script src="{% static 'classroom/js/cookie.js' %}"></script>
 <script>
 $(document).ready(function() {
+	setTimeout(() => {
+		$(".email-success-message-container").slideUp("slow");
+	}, 5000);
+
+	setTimeout(() => {
+		$(".email-error-message-container").slideUp("slow");
+	}, 5000);
+
 	$('.update-button').click(function() {
 		$('#loading-message').slideDown("slow");
 		const csrftoken = getCookie('csrftoken');
