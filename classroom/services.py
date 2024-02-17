@@ -195,6 +195,21 @@ class SendEmail:
 
         return email_list
 
-            
+class SetApprovedListFromForms:
+    def __init__(self, group): 
+        self.group = group
 
+    def execute(self):
+        api = GoogleAPI()
+        lists = Lists.objects.create(group=self.group)
+        _, email_qid, name_qid = api.get_form(self.group.associated_form_id)
+
+        approved_list = api.get_approved_list_from_form(
+            form_id=self.group.associated_form_id,
+            email_qid=email_qid,
+            name_qid=name_qid
+        )
+
+        lists.approved_list = approved_list
+        lists.save()
 

@@ -91,7 +91,7 @@ class GoogleAPI:
         except HttpError as error:
             print('error', error)
 
-    def get_emails_from_form(self, form_id, email_qid, name_qid):
+    def get_approved_list_from_form(self, form_id, email_qid, name_qid):
         try:
             service = build("forms", "v1", credentials=self.creds)
             responses = service.forms().responses().list(formId=form_id).execute()

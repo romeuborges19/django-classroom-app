@@ -22,6 +22,7 @@ from classroom.models import Group, Lists, Message
 from classroom.services import (
     DeleteGroup,
     SendEmail,
+    SetApprovedListFromForms,
     SetApprovedStudentsList,
     UpdateEnrolledStudentsList,
     UpdateMissingStudentsList,
@@ -48,18 +49,19 @@ class GroupCreateView(FormView):
     success_url = reverse_lazy("classroom:groups")
 
     def form_valid(self, form):
-        print('form valid')
         self.object = form.save()
         group = self.object
         group.save()
-        lists = Lists.objects.create(group=group)
-        lists.save()
+
+        service = SetApprovedListFromForms(
+            group=group
+        )
+        service.execute()
+
+        service = UpdateEnrolledStudentsList(group.id)
+        service.execute()
 
         return redirect(self.get_success_url()) 
-
-    def form_invalid(self, form):
-        print('form invalid')
-        return super().form_invalid(form)
 
 class GroupUpdateView(UpdateView):
     template_name = "group_update.html"
@@ -96,17 +98,6 @@ class GroupDetailView(DetailView):
     # View que carrega a página de detalhes de um grupo de turmas
     template_name = "group_detail.html"
     model = Group
-
-    def get(self, request, *args, **kwargs):
-        group = Group.objects.find(self.kwargs['pk'])
-        api = GoogleAPI()
-        form, email_qid, name_qid = api.get_form(group.associated_form_id)
-        approved_list = api.get_emails_from_form(group.associated_form_id, email_qid, name_qid)
-        lists = Lists.objects.find_by_group_id(group_id=group.pk)
-        lists.approved_list = approved_list
-        lists.save()
-
-        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
