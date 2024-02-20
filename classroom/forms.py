@@ -41,7 +41,6 @@ class GroupForm(forms.ModelForm):
         )
 
     def clean(self):
-        print('cleaning data')
         cleaned_data = super().clean()
 
         if not cleaned_data.get('name'):
@@ -76,7 +75,6 @@ class GroupForm(forms.ModelForm):
         associated_form_id = self.cleaned_data.get('associated_form')
         if associated_form_id != 0:
             instance.associated_form_id = associated_form_id
-            print(associated_form_id)
 
         if commit:
             instance.save()
@@ -139,13 +137,13 @@ class UpdateGroupForm(forms.ModelForm):
 
         return initial 
 
-class ApprovedListForm(forms.ModelForm):
+class ApprovedListCSVForm(forms.ModelForm):
     class Meta:
         model = Lists
         exclude = ['approved_list', 'missing_list', 'enrolled_list', 'unknown_list', 'group']
 
     def __init__(self, *args, **kwargs):
-        super(ApprovedListForm, self).__init__(*args, **kwargs)
+        super(ApprovedListCSVForm, self).__init__(*args, **kwargs)
 
         self.fields['approved_list_csv'] = forms.FileField()
 
@@ -179,6 +177,38 @@ class ApprovedListForm(forms.ModelForm):
 
         return instance
 
+class ApprovedListGoogleFormsForm(forms.ModelForm):
+    class Meta:
+        model = Group
+        exclude = ['name', 'classes', 'students', 'associated_form_id']
+
+    def __init__(self, *args, **kwargs):
+        super(ApprovedListGoogleFormsForm, self).__init__(*args, **kwargs)
+
+        api = GoogleAPI()
+        form_list = [('0', 'Nenhum')]
+        form_list.extend([((form['id'], form['name'])) for form in api.get_forms()])
+        FORMS = form_list
+
+        self.fields['associated_form'] = forms.ChoiceField(
+            choices=FORMS,
+            widget=forms.Select(),
+            required=False,
+            label="Formulário associado",
+        )
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        associated_form_id = self.cleaned_data.get('associated_form')
+        if associated_form_id != 0:
+            instance.associated_form_id = associated_form_id
+
+        if commit:
+            instance.save()
+
+        return instance
+
 class EmailMessageForm(forms.Form):
     recipient = forms.ChoiceField(
         label="Destinatários",
@@ -201,4 +231,5 @@ class EmailMessageForm(forms.Form):
                 code='empty'))
 
         return cleaned_data
+
 

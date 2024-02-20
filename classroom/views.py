@@ -1,3 +1,4 @@
+import json
 from django.forms import ValidationError
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -13,7 +14,8 @@ from django.views.generic.edit import FormMixin
 
 from classroom.api.api import *
 from classroom.forms import (
-    ApprovedListForm,
+    ApprovedListCSVForm,
+    ApprovedListGoogleFormsForm,
     EmailMessageForm,
     GroupForm,
     UpdateGroupForm,
@@ -22,8 +24,8 @@ from classroom.models import Group, Lists, Message
 from classroom.services import (
     DeleteGroup,
     SendEmail,
+    SetApprovedListFromCSV,
     SetApprovedListFromForms,
-    SetApprovedStudentsList,
     UpdateEnrolledStudentsList,
     UpdateMissingStudentsList,
 )
@@ -51,15 +53,16 @@ class GroupCreateView(FormView):
     def form_valid(self, form):
         self.object = form.save()
         group = self.object
-        group.save()
-
+        
         service = SetApprovedListFromForms(
-            group=group
+            group=group,
+            associated_form_id=group.associated_form_id
         )
         service.execute()
 
         service = UpdateEnrolledStudentsList(group.id)
         service.execute()
+        group.save()
 
         return redirect(self.get_success_url()) 
 
@@ -105,7 +108,8 @@ class GroupDetailView(DetailView):
         lists = Lists.objects.find_by_group_id(group.id)
 
         # Obtém formulário de lista de aprovados
-        context['approved_form'] = ApprovedListForm()
+        context['approved_form_csv'] = ApprovedListCSVForm()
+        context['approved_form_gforms'] = ApprovedListGoogleFormsForm()
 
         email_success_message = self.request.session.get('email_success')
         if email_success_message:
@@ -116,6 +120,11 @@ class GroupDetailView(DetailView):
         if email_error_message:
             context['email_error'] = email_error_message
             del self.request.session['email_error']
+
+        form_error_message = self.request.session.get('form_error')
+        if form_error_message:
+            context['form_error'] = form_error_message
+            del self.request.session['form_error']
 
         # Obtém quantidade de alunos matriculados no curso
         if lists:
@@ -139,37 +148,44 @@ class GroupDetailView(DetailView):
             # Processa o pedido de atualização de lista de estudantes matriculados
             service = UpdateEnrolledStudentsList(self.kwargs['pk'])
             service.execute()
-        else:
-            # Processa a submissão da lista de alunos aprovados
-            form = ApprovedListForm(data=request.POST, files=request.FILES)
-            
-            service = SetApprovedStudentsList(
-                self.kwargs['pk'], 
-                request.session,
-                form
-            )
-
-            service.execute()
 
         return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
 
 class ProcessSetApprovedStudentsListView(TemplateView):
+    template_name = 'teste.html'
     def post(self, request, *args, **kwargs):
-        group_id = request.POST.get('group_id')
-        form = ApprovedListForm(data=request.POST, files=request.FILES)
+        group_id = request.POST.get('groupId')
+        form = ApprovedListCSVForm(data=request.POST, files=request.FILES)
         
-        service = SetApprovedStudentsList(
+        service = SetApprovedListFromCSV(
             group_id, 
-            request.session,
             form
         )
 
         try:
             service.execute()
-            return JsonResponse({'status': 'success'})
+            return JsonResponse({'status': 'Lista definida com sucesso.'})
         except ValidationError as err:
-            print(err.messages)
-            return JsonResponse({'error':'Tipo de arquivo inválido. Tente fazer upload de um arquivo .csv.'})
+            return JsonResponse({'error':f'{err.messages[0]}'})
+
+class ProcessSetApprovedStudentsListFromFormsView(TemplateView):
+    template_name = 'teste.html'
+    def post(self, request, *args, **kwargs):
+        group_id = request.POST.get('groupId')
+        group = Group.objects.find(group_id)
+        associated_form_id = request.POST.get('associated_form')
+
+        service = SetApprovedListFromForms(
+            group=group,
+            associated_form_id=associated_form_id
+        )
+        try:
+            service.execute()
+            return JsonResponse({'status': 'Lista definida com sucesso.'})
+        except ValidationError as err:
+            return JsonResponse({'error': f'{err.messages[0]}'})
+
+        
 
 class MissingStudentsView(DetailView):
     # View que carrega página de gerenciamento de lista de alunos faltantes

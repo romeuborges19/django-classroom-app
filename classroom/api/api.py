@@ -79,7 +79,6 @@ class GoogleAPI:
         try:
             service = build("forms", "v1", credentials=self.creds)
             form = service.forms().get(formId=form_id).execute()
-            question_id = None
 
             for item in form.get('items'):
                 if item.get('title') == 'E-mail:':

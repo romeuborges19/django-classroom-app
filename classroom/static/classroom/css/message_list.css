@@ -105,3 +105,14 @@ main {
 	justify-content: center;
 	width: 70%;
 }
+
+.empty-list-message {
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.empty-list-message p{
+	color: gray;
+}

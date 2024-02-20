@@ -17,26 +17,6 @@ from classroom.utils import (
 class InvalidFileFormatError(Exception):
     pass
 
-class SetApprovedStudentsList:
-    # Classe de serviço que controla o processamento da definição da lista de alunos aprovados
-
-    def __init__(self, group_id, session, form):
-        self.form = form
-        self.group = Group.objects.find(group_id)
-        self.lists = Lists.objects.find_by_group_id(group_id)
-        self.session_data = session
-
-    def execute(self):
-        try:
-            if self.form.is_valid():
-                if self.lists:
-                    self.lists.delete()
-
-                self.form.instance.group = self.group 
-                self.form.save()
-        except ValidationError:
-            raise
-
 class UpdateEnrolledStudentsList:
     # Classe de serviço que executa a operação de atualizar a lista 
     # de alunos matriculados
@@ -196,20 +176,51 @@ class SendEmail:
         return email_list
 
 class SetApprovedListFromForms:
-    def __init__(self, group): 
+    # Classe de serviço que define lista de alunos aprovados a partir de respostas
+    # de formulário do Google Forms
+    def __init__(self, group, associated_form_id): 
         self.group = group
+        self.associated_form_id = associated_form_id
 
     def execute(self):
         api = GoogleAPI()
-        lists = Lists.objects.create(group=self.group)
-        _, email_qid, name_qid = api.get_form(self.group.associated_form_id)
+    
+        if self._valid_form_id:
+            lists = Lists.objects.find_by_group_id(group_id=self.group.pk)
+            if not lists:
+                lists = Lists.objects.create(group=self.group)
+            _, email_qid, name_qid = api.get_form(self.associated_form_id)
 
-        approved_list = api.get_approved_list_from_form(
-            form_id=self.group.associated_form_id,
-            email_qid=email_qid,
-            name_qid=name_qid
-        )
+            approved_list = api.get_approved_list_from_form(
+                form_id=self.associated_form_id,
+                email_qid=email_qid,
+                name_qid=name_qid
+            )
 
-        lists.approved_list = approved_list
-        lists.save()
+            lists.approved_list = approved_list
+            lists.save()
+        
+
+    def _valid_form_id(self):
+        if self.associated_form_id == "0":
+            return False
+        return True
+
+class SetApprovedListFromCSV:
+    # Classe de serviço que controla o processamento da definição da lista de alunos aprovados
+    def __init__(self, group_id, form):
+        self.form = form
+        self.group = Group.objects.find(group_id)
+        self.lists = Lists.objects.find_by_group_id(group_id)
+
+    def execute(self):
+        if self.form.is_valid():
+            if self.lists:
+                self.lists.delete()
+
+            self.form.instance.group = self.group 
+            self.form.save()
+        else:
+            for error in self.form.non_field_errors():
+                raise ValidationError(f'{error}')
 

@@ -47,34 +47,62 @@
 				{% endif %}
 
 				<div class="group-info-input-container">
-					<form method="POST" enctype="multipart/form-data">
-						<button type="button" class="collapse-flex button-top-container">Definir lista de estudantes aprovados</button>
-						<div class="approved-input-area-container">
-							{% csrf_token %}
-							
+				<div class="student-info-input-container input-group">
+					<div class="input-group-title">
+						<p> Lista de estudantes </p>
+					</div>
 
-							{% for field in approved_form %}
-								<div class="approved-input-container">
-									{{ field }}
+					<button id="list-collapse" type="button" class="collapse-flex button-top-container">Definir lista de estudantes aprovados</button>
+					<div id="set-list-container" class="approved-list-set-container">
+							<select id="form-select">
+								<option value="default"> Selecionar... </option>
+								<option value="csv"> Csv </option>
+								<option value="gform"> Google Forms </option>
+							</select>
+							<form class="approved-form" id="csv-form" method="POST" enctype="multipart/form-data">
 
-									<input class="approved-submit" type="submit" value="Definir">
+								{% csrf_token %}
+								Insira o arquivo com a lista:
+								<div class="form-input-area">
+									<div class="form-input-container">
+									{% render_field approved_form_csv.approved_list_csv class="form-file-input" %}
+									</div>
+									<div class="form-submit-container">
+										<button id="gform-button" type="submit" class="form-submit" value="Definir" data-set-url="{% url 'classroom:set_approved_list_google' %}" data-group-id="{{ group.pk }}">Definir</button>
+									</div>
 								</div>
-							{% endfor %}
-							{% if form_error %}
-								<div class="form-error-container">{{ form_error }} </div>
-							{% endif %}
+								<div class="form-message-container"></div>
 
-							<p class="helptext">Deve ser um arquivo .csv com colunas "fullname" e "email"</p>
+							</form>
+							<form class="approved-form" id="gform-form" method="POST" enctype="multipart/form-data">
+								{% csrf_token %}
+								{{ approved_form_gforms.associated_form.label }}:
+								<div class="form-input-area">
+
+									<div class="form-input-container">
+										{% render_field approved_form_gforms.associated_form class="form-select-input" %}
+									</div>
+									<div class="form-submit-container">
+										<button id="gform-button" type="submit" class="form-submit" value="Definir" data-set-url="{% url 'classroom:set_approved_list' %}" data-group-id="{{ group.pk }}">Definir</button>							
+									</div>
+								</div>
+							</form>
+					</div>
+
+						<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}" data-group-id="{{ group.pk }}">Atualizar lista de estudantes matriculados</button>
+						<p id="loading-message" class="loading-message"> Atualizando lista de estudantes matriculados. Aguarde... </p>
+						{% if approved_list %}
+							<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Gerenciar lista de estudantes ainda não matriculados</a>
+						{% endif %}
+					</div>
+					<div class="email-info-input-container input-group">
+						<div class="input-group-title">
+							<p> E-mails </p>
 						</div>
-					</form>
-					<button class="update-button button-top-container" data-update-url="{% url 'classroom:group' group.pk %}" data-group-id="{{ group.pk }}">Atualizar lista de estudantes matriculados</button>
-					<p id="loading-message" class="loading-message"> Atualizando lista de estudantes matriculados. Aguarde... </p>
-					<a href="{% url 'classroom:send_email' group.pk %}" class="link-button-container">Enviar e-mail para estudantes </a> 
-					<a href="{% url 'classroom:messages' group.pk %}" class="link-button-container">Ver e-mails enviados</a> 
+						<a href="{% url 'classroom:send_email' group.pk %}" class="link-button-container">Enviar e-mail para estudantes </a> 
+						<a href="{% url 'classroom:messages' group.pk %}" class="link-button-container">Ver e-mails enviados</a> 
+					</div>
 
-					{% if approved_list %}
-						<a href="{% url 'classroom:missing' group.pk %}" class="link-button-container">Gerenciar lista de estudantes ainda não matriculados</a>
-					{% endif %}
 				</div>
 				<div id="success-message" class="success-message">
 					Lista de estudantes matriculados atualizada com sucesso
@@ -108,6 +136,95 @@
 <script src="{% static 'classroom/js/cookie.js' %}"></script>
 <script>
 $(document).ready(function() {
+	const select = document.getElementById('form-select');
+
+	select.addEventListener('change', function handleChange(event) {
+		if(event.target.value == 'gform') {
+			$('#csv-form').hide();
+			$('#gform-form').show();
+		}
+		if(event.target.value == 'csv') {
+			$('#gform-form').hide();
+			$('#csv-form').show();
+		}
+		if(event.target.value == 'default') {
+			$('#gform-form').hide();
+			$('#csv-form').hide();
+		}
+	});
+
+	$('#gform-form').on('submit', function(event) {
+		event.preventDefault();
+
+		form = document.getElementById("gform-form");
+		var formData = new FormData(form);
+		var setUrl = $('#gform-button').data('set-url');
+		const groupId = $('#gform-button').data('group-id');
+		const csrftoken = getCookie('csrftoken');
+
+		formData.append('groupId', groupId);
+
+		for (const pair of formData.entries()) {
+			console.log(pair[0], pair[1]);
+		}
+
+
+		$.ajax({
+			url: setUrl,
+			type: "POST",
+			data: formData,
+			headers:{'X-CSRFToken': csrftoken},
+			processData: false,
+			contentType: false,
+			mode: 'same-origin',
+			success: function(response) {
+				if (response.error) {
+					console.log('erro');
+				} else {
+					console.log('sucesso');
+				}
+			}
+		})
+
+	})
+
+	$('#csv-form').on('submit', function(event) {
+		event.preventDefault();
+
+		form = document.getElementById("csv-form");
+		var formData = new FormData(form);
+		var setUrl = $('#csv-button').data('set-url');
+		const groupId = $('#csv-button').data('group-id');
+		const csrftoken = getCookie('csrftoken');
+
+		formData.append('groupId', groupId);
+
+		$.ajax({
+			url: setUrl,
+			type: "POST",
+			data: formData,
+			headers: {'X-CSRFToken': csrftoken},
+			contentType: false,
+			processData: false,
+			mode: 'same-origin',
+			success: function(response) {
+				if (response.error) {
+					$(".form-message-container").css('color', 'red');
+					$(".form-message-container").html(response.error)
+					setTimeout(() => {
+						$('.form-message-container').slideUp("slow");
+					}, 5000);	
+				} else {
+					$(".form-message-container").css('color', 'green');
+					$(".form-message-container").html(response.status)
+					setTimeout(() => {
+						$('.form-message-container').slideUp("slow");
+					}, 5000);	
+				}
+			}
+		})
+	})
+
 	setTimeout(() => {
 		$(".email-success-message-container").slideUp("slow");
 	}, 5000);
@@ -177,5 +294,10 @@ for (i = 0; i < coll.length; i++) {
 		}
 	})
 }
+
+var forms = document.getElementById("set-list-container");
+$("list-collapse").click(function () {
+	$('set-list-container').toggle();
+})
 </script>
 {% endblock content %}
