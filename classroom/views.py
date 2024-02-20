@@ -161,12 +161,11 @@ class ProcessSetApprovedStudentsListView(TemplateView):
             group_id, 
             form
         )
-
         try:
             service.execute()
-            return JsonResponse({'status': 'Lista definida com sucesso.'})
-        except ValidationError as err:
-            return JsonResponse({'error':f'{err.messages[0]}'})
+            return JsonResponse({'status': f'Lista definida com sucesso.'})
+        except Exception as err:
+            return JsonResponse({'error':f'{err}'})
 
 class ProcessSetApprovedStudentsListFromFormsView(TemplateView):
     template_name = 'teste.html'
@@ -180,10 +179,10 @@ class ProcessSetApprovedStudentsListFromFormsView(TemplateView):
             associated_form_id=associated_form_id
         )
         try:
-            service.execute()
-            return JsonResponse({'status': 'Lista definida com sucesso.'})
-        except ValidationError as err:
-            return JsonResponse({'error': f'{err.messages[0]}'})
+            num_students = service.execute()
+            return JsonResponse({'status': f'Lista definida com sucesso. {num_students} aprovados.'})
+        except Exception as err:
+            return JsonResponse({'error': f'{err}'})
 
         
 

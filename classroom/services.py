@@ -189,7 +189,11 @@ class SetApprovedListFromForms:
             lists = Lists.objects.find_by_group_id(group_id=self.group.pk)
             if not lists:
                 lists = Lists.objects.create(group=self.group)
-            _, email_qid, name_qid = api.get_form(self.associated_form_id)
+
+            try:
+                _, email_qid, name_qid = api.get_form(self.associated_form_id)
+            except Exception as err:
+                raise err
 
             approved_list = api.get_approved_list_from_form(
                 form_id=self.associated_form_id,
@@ -199,6 +203,7 @@ class SetApprovedListFromForms:
 
             lists.approved_list = approved_list
             lists.save()
+            return len(approved_list)
         
 
     def _valid_form_id(self):

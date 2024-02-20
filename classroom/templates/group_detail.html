@@ -68,10 +68,10 @@
 									{% render_field approved_form_csv.approved_list_csv class="form-file-input" %}
 									</div>
 									<div class="form-submit-container">
-										<button id="gform-button" type="submit" class="form-submit" value="Definir" data-set-url="{% url 'classroom:set_approved_list_google' %}" data-group-id="{{ group.pk }}">Definir</button>
+										<button id="csv-button" type="submit" class="form-submit" value="Definir" data-set-url="{% url 'classroom:set_approved_list' %}" data-group-id="{{ group.pk }}">Definir</button>
 									</div>
 								</div>
-								<div class="form-message-container"></div>
+								<div class="form-csv-message-container"></div>
 
 							</form>
 							<form class="approved-form" id="gform-form" method="POST" enctype="multipart/form-data">
@@ -83,9 +83,10 @@
 										{% render_field approved_form_gforms.associated_form class="form-select-input" %}
 									</div>
 									<div class="form-submit-container">
-										<button id="gform-button" type="submit" class="form-submit" value="Definir" data-set-url="{% url 'classroom:set_approved_list' %}" data-group-id="{{ group.pk }}">Definir</button>							
+										<button id="gform-button" type="submit" class="form-submit" value="Definir" data-set-url="{% url 'classroom:set_approved_list_google' %}" data-group-id="{{ group.pk }}">Definir</button>							
 									</div>
 								</div>
+								<div class="form-gform-message-container"></div>
 							</form>
 					</div>
 
@@ -164,11 +165,6 @@ $(document).ready(function() {
 
 		formData.append('groupId', groupId);
 
-		for (const pair of formData.entries()) {
-			console.log(pair[0], pair[1]);
-		}
-
-
 		$.ajax({
 			url: setUrl,
 			type: "POST",
@@ -179,9 +175,21 @@ $(document).ready(function() {
 			mode: 'same-origin',
 			success: function(response) {
 				if (response.error) {
-					console.log('erro');
+					console.log('fracasso')
+					$(".form-gform-message-container").css('color', 'red');
+					$(".form-gform-message-container").show();
+					$(".form-gform-message-container").html(response.error)
+					setTimeout(() => {
+						$('.form-gform-message-container').slideUp("slow");
+					}, 5000);	
 				} else {
-					console.log('sucesso');
+					console.log('SUCESSO!')
+					$(".form-gform-message-container").css('color', 'green');
+					$(".form-gform-message-container").show();
+					$(".form-gform-message-container").html(response.status)
+					setTimeout(() => {
+						$('.form-gform-message-container').slideUp("slow");
+					}, 5000);	
 				}
 			}
 		})
@@ -209,16 +217,16 @@ $(document).ready(function() {
 			mode: 'same-origin',
 			success: function(response) {
 				if (response.error) {
-					$(".form-message-container").css('color', 'red');
-					$(".form-message-container").html(response.error)
+					$(".form-csv-message-container").css('color', 'red');
+					$(".form-csv-message-container").html(response.error)
 					setTimeout(() => {
-						$('.form-message-container').slideUp("slow");
+						$('.form-csv-message-container').slideUp("slow");
 					}, 5000);	
 				} else {
-					$(".form-message-container").css('color', 'green');
-					$(".form-message-container").html(response.status)
+					$(".form-csv-message-container").css('color', 'green');
+					$(".form-csv-message-container").html(response.status)
 					setTimeout(() => {
-						$('.form-message-container').slideUp("slow");
+						$('.form-csv-message-container').slideUp("slow");
 					}, 5000);	
 				}
 			}
