@@ -23,6 +23,11 @@
 			<p class="content-title">E-mails enviados: </p>
 		</div>
 		<div class="messages-container">
+		{% if not object_list %}
+			<div class="empty-list-message">
+				<p>Nenhum e-mail foi enviado para este grupo.</p>
+			</div>
+		{% endif %}
 		{% for message in object_list %}
 		<div class="message-container">
 			<div class="message-time-container">

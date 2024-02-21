@@ -24,6 +24,9 @@ SCOPES = [
     "https://www.googleapis.com/auth/forms.responses.readonly"
 ]
 
+class FormFieldDoesntExistError(Exception):
+    pass
+
 class GoogleAPI:
     # Classe que obtém as credenciais para que seja realizada a conexão
     # com as APIs disponibilizadas pelo Google.
@@ -79,19 +82,26 @@ class GoogleAPI:
         try:
             service = build("forms", "v1", credentials=self.creds)
             form = service.forms().get(formId=form_id).execute()
-            question_id = None
+
+            email_qid = None
+            name_qid = None
 
             for item in form.get('items'):
-                if item.get('title') == 'E-mail:':
+                if 'e-mail' in item.get('title').lower():
                     email_qid = item['questionItem']['question']['questionId']
-                if item.get('title') == 'Nome completo:':
+                if 'nome completo' in item.get('title').lower():
                     name_qid = item['questionItem']['question']['questionId']
+
+            if not email_qid or not name_qid:
+                raise FormFieldDoesntExistError(
+                    "Este formulário não possui dados de e-mail ou nome completo dos estudantes."
+                )
 
             return form, email_qid, name_qid
         except HttpError as error:
-            print('error', error)
+            print(f'{error}')
 
-    def get_emails_from_form(self, form_id, email_qid, name_qid):
+    def get_approved_list_from_form(self, form_id, email_qid, name_qid):
         try:
             service = build("forms", "v1", credentials=self.creds)
             responses = service.forms().responses().list(formId=form_id).execute()
