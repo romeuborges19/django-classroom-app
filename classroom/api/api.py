@@ -87,9 +87,9 @@ class GoogleAPI:
             name_qid = None
 
             for item in form.get('items'):
-                if item.get('title') == 'E-mail:':
+                if 'e-mail' in item.get('title').lower():
                     email_qid = item['questionItem']['question']['questionId']
-                if item.get('title') == 'Nome completo:':
+                if 'nome completo' in item.get('title').lower():
                     name_qid = item['questionItem']['question']['questionId']
 
             if not email_qid or not name_qid:
@@ -99,7 +99,7 @@ class GoogleAPI:
 
             return form, email_qid, name_qid
         except HttpError as error:
-            print('error', error)
+            print(f'{error}')
 
     def get_approved_list_from_form(self, form_id, email_qid, name_qid):
         try:

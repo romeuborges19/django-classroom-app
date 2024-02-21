@@ -16,6 +16,4 @@ urlpatterns=[
     path('groups/<int:pk>/email-students', views.EmailStudentsView.as_view(), name="send_email"),
     path('groups/<int:pk>/email-students/send', views.SendInvitationsView.as_view(), name="invite"),
     path('groups/<int:pk>/messages', views.EmailMessagesView.as_view(), name="messages"),
-    path('forms/<int:pk>', views.AssociateForm.as_view(), name="forms")
-
 ]

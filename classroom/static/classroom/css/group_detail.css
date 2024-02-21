@@ -236,6 +236,7 @@ main {
 	width: 90%;
 	display: flex;
 	flex-direction: column;
+	display: none;
 }
 
 #form-select {
@@ -258,3 +259,20 @@ main {
 	opacity: 0.8;
 }
 
+.error-message-container-container {
+	display: flex;
+	width: 100%;
+	justify-content: center;
+	align-items: center;
+}
+
+.error-message-container {
+	display: flex;
+	padding: 0.5rem 2rem;
+	border-radius: 8px;
+	border: 1px solid #3f4f4d;
+	background-color: #a7d6d1;
+	width: 100%;
+	justify-content: center;
+	align-items: center;
+}

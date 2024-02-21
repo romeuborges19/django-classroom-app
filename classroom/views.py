@@ -53,18 +53,26 @@ class GroupCreateView(FormView):
     def form_valid(self, form):
         self.object = form.save()
         group = self.object
+        self.success_url_pk = group.id
         
         service = SetApprovedListFromForms(
             group=group,
             associated_form_id=group.associated_form_id
         )
-        service.execute()
+        try:
+            service.execute()
+        except Exception as err:
+            self.request.session['approved_list_error'] = f'Não foi possível definir lista de alunos aprovados. {err}'
 
         service = UpdateEnrolledStudentsList(group.id)
         service.execute()
         group.save()
 
         return redirect(self.get_success_url()) 
+
+    def get_success_url(self):
+        return reverse_lazy("classroom:group", kwargs={'pk': self.success_url_pk})
+
 
 class GroupUpdateView(UpdateView):
     template_name = "group_update.html"
@@ -120,6 +128,11 @@ class GroupDetailView(DetailView):
         if email_error_message:
             context['email_error'] = email_error_message
             del self.request.session['email_error']
+
+        approved_list_error = self.request.session.get('approved_list_error')
+        if approved_list_error:
+            context['approved_list_error'] = approved_list_error
+            del self.request.session['approved_list_error']
 
         form_error_message = self.request.session.get('form_error')
         if form_error_message:
@@ -184,8 +197,6 @@ class ProcessSetApprovedStudentsListFromFormsView(TemplateView):
         except Exception as err:
             return JsonResponse({'error': f'{err}'})
 
-        
-
 class MissingStudentsView(DetailView):
     # View que carrega página de gerenciamento de lista de alunos faltantes
     template_name = "missing_students.html"
@@ -199,8 +210,6 @@ class MissingStudentsView(DetailView):
             context['comparison_list'] = get_comparisons(lists)
         except Exception as err:
             context['lists_error'] = err 
-
-
 
         if lists:
             if lists.missing_list:
@@ -264,15 +273,4 @@ class EmailMessagesView(ListView):
         context = super().get_context_data(object_list=object_list, **kwargs) 
         context['group_id'] = self.kwargs['pk']
 
-        return context
-
-class AssociateForm(DetailView):
-    model = Group
-    template_name = 'associate_form.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        api = GoogleAPI() 
-        forms = api.get_forms()
-        context['forms'] = forms
         return context

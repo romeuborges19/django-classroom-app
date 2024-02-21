@@ -21,6 +21,13 @@
 		</div>
 		<div class="group-info-container">
 			<div class="group-title-container">
+			{% if approved_list_error %}
+				<div class="error-message-container-container">
+					<div class="error-message-container">
+						<p> {{ approved_list_error }} </p>
+					</div>
+				</div>
+			{% endif %}
 			<div class="email-success-message-container">
 				{% if email_success %}
 				<div class="email-success-message">
@@ -175,7 +182,6 @@ $(document).ready(function() {
 			mode: 'same-origin',
 			success: function(response) {
 				if (response.error) {
-					console.log('fracasso')
 					$(".form-gform-message-container").css('color', 'red');
 					$(".form-gform-message-container").show();
 					$(".form-gform-message-container").html(response.error)
@@ -183,7 +189,6 @@ $(document).ready(function() {
 						$('.form-gform-message-container').slideUp("slow");
 					}, 5000);	
 				} else {
-					console.log('SUCESSO!')
 					$(".form-gform-message-container").css('color', 'green');
 					$(".form-gform-message-container").show();
 					$(".form-gform-message-container").html(response.status)
@@ -307,5 +312,10 @@ var forms = document.getElementById("set-list-container");
 $("list-collapse").click(function () {
 	$('set-list-container').toggle();
 })
+
+	setTimeout(() => {
+		$('.error-message-container').slideUp('slow');
+		
+	}, 5000);
 </script>
 {% endblock content %}

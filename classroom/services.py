@@ -127,10 +127,11 @@ class SendEmail:
             content=self.content
         )
 
-#         api.send_invitations(
-#             course_id='653538511313',
-#             receipt_list=self.email_list
-#         )
+        # if self.recipient == "faltantes":
+        #     api.send_invitations(
+        #         course_id='653538511313',
+        #         receipt_list=email_list
+        #     )
 
         self._save_message()
 
