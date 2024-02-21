@@ -38,15 +38,10 @@ main {
 	padding: 0.6rem 1rem;
 	border-radius: 5px;
 	transition: 200ms;
-	background-color: #041524;
 	color: white;
 	font-weight: bold;
 	text-decoration: none;
 	margin-block: 5px;
-}
-
-.button-container:hover{
-	background-color: #0c2b45;
 }
 
 table {

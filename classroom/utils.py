@@ -11,6 +11,9 @@ class ApprovedStudentsListDoesNotExist(Exception):
 class MissingStudentListDoesNotExist(Exception):
     pass
 
+class ListsDoesNotExist(Exception):
+    pass
+
 
 def is_ajax(request):
     # Método que verifica se requisição é Ajax
@@ -58,17 +61,20 @@ def get_comparisons(lists):
     # na lista de matriculados e de alunos faltantes e disponibiliza as comparações
     # para que a lista de alunos faltantes seja ajustada manualmente.
 
+    if not lists:
+        raise ListsDoesNotExist("Listas não definidas.")
+
     enrolled = lists.enrolled_list
     if not enrolled:
-        raise EnrolledStudentsListDoesNotExist()
+        raise EnrolledStudentsListDoesNotExist("Lista de alunos matriculados não foi registrada.")
 
     approved = lists.approved_list
     if not approved:
-        raise ApprovedStudentsListDoesNotExist()
+        raise ApprovedStudentsListDoesNotExist("Lista de alunos aprovados não foi registrada.")
 
     missing = lists.missing_list
     if not missing:
-        raise MissingStudentListDoesNotExist()
+        raise MissingStudentListDoesNotExist("Lista de alunos faltantes não foi registrada.")
 
     comparisons = []
     enrolled_list = []
@@ -95,7 +101,7 @@ def get_comparisons(lists):
                 if similarity == 1:
                     lists.missing_list.remove(missing_student)
                     next = True
-                if similarity > 0.3:
+                if similarity > 0.3 and not next:
                     comparison = [missing_student['fullname'], fullname, enrolled_emails[enrolled_fullnames.index(fullname)]]
 
                     if lists.unknown_list:
@@ -127,4 +133,13 @@ def read_csv(file):
         })    
 
     return content
+
+def get_recipient_list(email_list):
+    recipient_list = ''
+    for recipient in email_list:
+        sep = ', '
+        if email_list.index(recipient) == (len(email_list)-1):
+            sep = '.'
+        recipient_list += (recipient + sep) 
+    return recipient_list
 

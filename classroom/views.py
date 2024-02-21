@@ -1,24 +1,35 @@
+import json
 from django.forms import ValidationError
 from django.http import JsonResponse
-from django.shortcuts import redirect 
+from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DetailView, FormView, ListView, TemplateView, UpdateView
+from django.views.generic import (
+    DetailView,
+    FormView,
+    ListView,
+    TemplateView,
+    UpdateView,
+)
+from django.views.generic.edit import FormMixin
 
 from classroom.api.api import *
-from classroom.forms import ApprovedListForm, GroupForm, UpdateGroupForm
-from classroom.models import Group, Lists
+from classroom.forms import (
+    ApprovedListCSVForm,
+    ApprovedListGoogleFormsForm,
+    EmailMessageForm,
+    GroupForm,
+    UpdateGroupForm,
+)
+from classroom.models import Group, Lists, Message
 from classroom.services import (
     DeleteGroup,
-    SetApprovedStudentsList,
+    SendEmail,
+    SetApprovedListFromCSV,
+    SetApprovedListFromForms,
     UpdateEnrolledStudentsList,
     UpdateMissingStudentsList,
 )
-from classroom.utils import (
-    ApprovedStudentsListDoesNotExist,
-    EnrolledStudentsListDoesNotExist,
-    get_comparisons,
-    is_ajax,
-)
+from classroom.utils import get_comparisons, is_ajax
 
 class ClassroomHomeView(TemplateView):
     # View que carrega a página inicial, que lista os cursos disponíveis
@@ -27,8 +38,8 @@ class ClassroomHomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        classroom_api = ClassroomAPI()
-        courses = classroom_api.get_courses()
+        api = GoogleAPI()
+        courses = api.get_courses()
         context['courses'] = courses
          
         return context
@@ -38,6 +49,30 @@ class GroupCreateView(FormView):
     template_name = "group_create.html"
     form_class = GroupForm
     success_url = reverse_lazy("classroom:groups")
+
+    def form_valid(self, form):
+        self.object = form.save()
+        group = self.object
+        self.success_url_pk = group.id
+        
+        service = SetApprovedListFromForms(
+            group=group,
+            associated_form_id=group.associated_form_id
+        )
+        try:
+            service.execute()
+        except Exception as err:
+            self.request.session['approved_list_error'] = f'Não foi possível definir lista de alunos aprovados. {err}'
+
+        service = UpdateEnrolledStudentsList(group.id)
+        service.execute()
+        group.save()
+
+        return redirect(self.get_success_url()) 
+
+    def get_success_url(self):
+        return reverse_lazy("classroom:group", kwargs={'pk': self.success_url_pk})
+
 
 class GroupUpdateView(UpdateView):
     template_name = "group_update.html"
@@ -81,14 +116,36 @@ class GroupDetailView(DetailView):
         lists = Lists.objects.find_by_group_id(group.id)
 
         # Obtém formulário de lista de aprovados
-        context['approved_form'] = ApprovedListForm()
+        context['approved_form_csv'] = ApprovedListCSVForm()
+        context['approved_form_gforms'] = ApprovedListGoogleFormsForm()
+
+        email_success_message = self.request.session.get('email_success')
+        if email_success_message:
+            context['email_success'] = email_success_message
+            del self.request.session['email_success']
+
+        email_error_message = self.request.session.get('email_error')
+        if email_error_message:
+            context['email_error'] = email_error_message
+            del self.request.session['email_error']
+
+        approved_list_error = self.request.session.get('approved_list_error')
+        if approved_list_error:
+            context['approved_list_error'] = approved_list_error
+            del self.request.session['approved_list_error']
+
+        form_error_message = self.request.session.get('form_error')
+        if form_error_message:
+            context['form_error'] = form_error_message
+            del self.request.session['form_error']
 
         # Obtém quantidade de alunos matriculados no curso
         if lists:
             num_students = 0
 
-            for student_group in lists.enrolled_list:
-                num_students += len(student_group[1])
+            if lists.enrolled_list:
+                for student_group in lists.enrolled_list:
+                    num_students += len(student_group[1])
 
             context['num_students'] = num_students
 
@@ -104,37 +161,41 @@ class GroupDetailView(DetailView):
             # Processa o pedido de atualização de lista de estudantes matriculados
             service = UpdateEnrolledStudentsList(self.kwargs['pk'])
             service.execute()
-        else:
-            # Processa a submissão da lista de alunos aprovados
-            form = ApprovedListForm(data=request.POST, files=request.FILES)
-            
-            service = SetApprovedStudentsList(
-                self.kwargs['pk'], 
-                request.session,
-                form
-            )
-
-            service.execute()
 
         return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
 
 class ProcessSetApprovedStudentsListView(TemplateView):
+    template_name = 'teste.html'
     def post(self, request, *args, **kwargs):
-        group_id = request.POST.get('group_id')
-        form = ApprovedListForm(data=request.POST, files=request.FILES)
+        group_id = request.POST.get('groupId')
+        form = ApprovedListCSVForm(data=request.POST, files=request.FILES)
         
-        service = SetApprovedStudentsList(
+        service = SetApprovedListFromCSV(
             group_id, 
-            request.session,
             form
         )
-
         try:
             service.execute()
-            return JsonResponse({'status': 'success'})
-        except ValidationError as err:
-            print(err.messages)
-            return JsonResponse({'error':'Tipo de arquivo inválido. Tente fazer upload de um arquivo .csv.'})
+            return JsonResponse({'status': f'Lista definida com sucesso.'})
+        except Exception as err:
+            return JsonResponse({'error':f'{err}'})
+
+class ProcessSetApprovedStudentsListFromFormsView(TemplateView):
+    template_name = 'teste.html'
+    def post(self, request, *args, **kwargs):
+        group_id = request.POST.get('groupId')
+        group = Group.objects.find(group_id)
+        associated_form_id = request.POST.get('associated_form')
+
+        service = SetApprovedListFromForms(
+            group=group,
+            associated_form_id=associated_form_id
+        )
+        try:
+            num_students = service.execute()
+            return JsonResponse({'status': f'Lista definida com sucesso. {num_students} aprovados.'})
+        except Exception as err:
+            return JsonResponse({'error': f'{err}'})
 
 class MissingStudentsView(DetailView):
     # View que carrega página de gerenciamento de lista de alunos faltantes
@@ -147,14 +208,13 @@ class MissingStudentsView(DetailView):
 
         try:
             context['comparison_list'] = get_comparisons(lists)
-        except EnrolledStudentsListDoesNotExist:
-            context['enrolled_error'] = 'List of enrolled students have not been set yet. Please return and set it.'
-        except ApprovedStudentsListDoesNotExist:
-            context['approved_error'] = 'List of approved students have not been set yet. Please return and set it.'
+        except Exception as err:
+            context['lists_error'] = err 
 
-        if lists.missing_list:
-            context['missing_list'] = lists.missing_list
-            context['num_missing_list'] = len(lists.missing_list)
+        if lists:
+            if lists.missing_list:
+                context['missing_list'] = lists.missing_list
+                context['num_missing_list'] = len(lists.missing_list)
 
         return context
 
@@ -169,3 +229,48 @@ class MissingStudentsView(DetailView):
             service.execute()
 
             return redirect(reverse_lazy("classroom:group", kwargs={'pk':kwargs['pk']}))
+
+class EmailStudentsView(FormMixin, DetailView):
+    model = Group
+    template_name = 'email_students.html'
+    form_class = EmailMessageForm
+
+class SendInvitationsView(DetailView):
+    model = Group
+    template_name = 'teste.html'
+
+    def post(self, request, *args, **kwargs):
+        recipient = self.request.POST.get('recipient')
+        subject = self.request.POST.get('subject')
+        content = self.request.POST.get('content')
+
+        try:
+            service = SendEmail(
+                group_id=kwargs['pk'],
+                recipient=recipient,
+                subject=subject,
+                content=content
+            )     
+
+            service.execute()
+        except Exception as err:
+            self.request.session['email_error'] = f"Impossível enviar e-mail: {err}"
+        else:
+
+            self.request.session['email_success'] = "E-mail enviado com sucesso."
+
+        return redirect(reverse_lazy('classroom:group', kwargs={'pk':kwargs['pk']}))
+
+class EmailMessagesView(ListView):
+    template_name = 'message_list.html'
+
+    def get_queryset(self):
+        queryset = Message.objects.list_by_group(self.kwargs['pk'])
+
+        return queryset 
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(object_list=object_list, **kwargs) 
+        context['group_id'] = self.kwargs['pk']
+
+        return context

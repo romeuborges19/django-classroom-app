@@ -15,7 +15,7 @@
 	<div class="main-container">
 		<div class="return-button-container-container">
 			<div class="return-button-container-create">
-				<button class="return-button" onclick="window.history.back()"> Voltar </button>
+				<a class="return-button" href="{% url 'classroom:groups' %}"> Voltar </a>
 			</div>
 		</div>
 		<form method="POST">
@@ -35,6 +35,15 @@
 						{% endif %}
 					</div>
 					<div class="field-container">
+						{{ form.associated_form.label }}:
+						{% render_field form.associated_form class="form-control" %}
+						{% if form.associated_form.errors %}
+							{% for error in form.associated_form.errors %}
+								<p class="field-error-container">{{ error }}</p>
+							{% endfor %}
+						{% endif %}
+					</div>
+					<div class="field-container">
 						{{ form.avaliable_classes.label }}:
 						{% if form.avaliable_classes.errors %}
 							{% for error in form.avaliable_classes.errors %}
@@ -42,7 +51,6 @@
 							{% endfor %}
 						{% endif %}
 						{% render_field form.avaliable_classes class="checkbox-form-control" %}
-
 					</div>
 				</div>
 				<div class="form-input-container">

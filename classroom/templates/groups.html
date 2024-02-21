@@ -12,12 +12,14 @@
 {% block content %}
 <main>
 	<div class="main-container">
+		
 		<div class="main-title-container">
 			<p> Lista de grupos </p>
 		</div>
+
 		<div class="return-button-container-container">
 			<div class="return-button-container">
-				<button class="return-button" onclick="window.history.back()"> Voltar </button>
+				<a class="return-button" href="{% url 'classroom:home' %}"> Voltar </a>
 			</div>
 		</div>
 		<div class="groups-container">
@@ -70,6 +72,7 @@
 <script src="{% static 'classroom/js/cookie.js' %}"></script>
 <script>
 $(document).ready(function() {
+
 	$('.remove-button').click(function() {
 		const csrftoken = getCookie('csrftoken');
 		const groupId = $(this).data('group-id');

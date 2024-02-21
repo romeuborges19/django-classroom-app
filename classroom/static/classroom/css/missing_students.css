@@ -118,6 +118,20 @@ main {
 	background-color: #1a364f;
 }
 
+.body-button { 
+	background-color: #041524;
+	color: white;
+	font-weight: bold;
+	font-size: 16px;
+	border: none;
+	padding: 1rem;
+	text-decoration: none;
+	border-radius: 8px;
+}
+
+.body-button:hover{ 
+	background-color: #1a364f;
+}
 
 .yes-button:active {
 	background-color: #1a364f;
@@ -145,6 +159,20 @@ main {
 
 .comparison-button-container {
 	display: flex;
-	flex-direction: row-reverse;
+	flex-direction: row;
+	gap: 10px;
+	justify-content: space-between;
 	padding: 1.5rem 2rem;
+}
+
+.email-success-message {
+	background-color: #c0d4a5;
+	width: 100%;
+	padding-block: 0.5rem;
+	border-radius: 6px;
+}
+
+.email-success-message-container{
+	width: 100%;
+	text-align: center;
 }
